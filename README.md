@@ -18,6 +18,16 @@ This is a verb conjugator for Czech verbs that currently conjugates for 2 tenses
 2. Knowledge of the command line (if using a CLI)
 3. Czech (or Slovak) keyboard installed
 
+## Files:
+1. conjugator.py:
+    - runs the actual program
+2. verbs.py:
+    - code file to for the implementation of the Verb base class and its various subclasses
+4. irregular.txt:
+    - .txt file containing almost 100 irregular verbs. Each line holds the infinitive, its conjugation class, present tense stem, past participle (masculine singular), and singular form of the verb in the imperative
+6. prefix.txt:
+    - .txt file containing the list of verbal prefixes, and its variant forms, as indicated with regex. This file is intended for generating a regex string.
+ 
 ## Running the Program:
 
 (if CLI) Type in the following command to begin running the program:
