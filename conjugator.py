@@ -98,7 +98,7 @@ def determine_verb(word, root):
 	x = []
 
 	# chovat is class1 otherwise class 2
-	if x := re.findall("ovat$", root) and not re.search("chovat$", root):
+	if (x := re.findall("ovat$", root)) and not re.search("chovat$", word):
 		verb = v.Class2_ovat(word, x[0])
 	elif x := re.findall("ít|ýt$", word):
 		# řít endings, přít added manually since without t looks like pří prefix and not part of 'root'
