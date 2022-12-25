@@ -391,7 +391,6 @@ class Class3(Verb):
 
 class Class3_itet(Class3):
 	def __init__(self, infinitive, ending):
-		print(ending)
 		_thematic_vowel = ending[0]
 		self._infinitive = infinitive
 		self._ending = ending

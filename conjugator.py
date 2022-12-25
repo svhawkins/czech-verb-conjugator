@@ -83,6 +83,10 @@ def check_match(match, word, root):
 		verb = None
 	elif (m == "kat" and (root != "kat" or re.findall("sekat$", word)) or (m == "kát" and root != "kát")):
 		verb = None
+	elif (m == "tít" and re.findall("(sklít|dštít|křtít)$", word)) or (m == "stít" and re.findall("mstít$", word)):
+		verb = None
+	elif m == "pět" and re.findall("(čpět)$", word):
+		verb = None
 	else:
 		verb = construct_verb(word, match[0])
 	return verb
@@ -92,7 +96,9 @@ def check_match(match, word, root):
 def determine_verb(word, root):
 	verb  = v.Verb()
 	x = []
-	if x := re.findall("ovat$", root):
+
+	# chovat is class1 otherwise class 2
+	if x := re.findall("ovat$", root) and not re.search("chovat$", root):
 		verb = v.Class2_ovat(word, x[0])
 	elif x := re.findall("ít|ýt$", word):
 		# řít endings, přít added manually since without t looks like pří prefix and not part of 'root'

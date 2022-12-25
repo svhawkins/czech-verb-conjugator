@@ -1,14 +1,9 @@
 zvát		4		zv		zval		zvi
 zvat		4		zv		zval		zvi
 skřípět		3		skříp		skřípěl		skřip
-sklít		3		skl		sklil		skli
-dštít		3		dšt		dštil		dšti
 zdít		3		zd		zdil		zdi
-křtít		3		křt		křtil		křti
-mstít		3		mst		mstil		msti
 stít		4		setn		sťal		setni
 lpět		3		lp		lpěl		lpi
-čpět		3		čp		čpěl		čpi
 plít		2		plej		plel		plej
 chtít		2		chc		chtěl		chtěj
 blahopřát	2		blahopřej	blahopřál	blahopřej
