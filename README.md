@@ -10,7 +10,7 @@ This is a verb conjugator for Czech verbs that currently conjugates for 2 tenses
     - *snít*: to dream,  *snít (sejmout)* to take away
     
     These homonyms have alternate forms more commonly used in the parentheses (and also more regular!). These homonyms conjugate like *tít* or *vzít* regardless.
-3. This conjugtator is naive. It cannot recognize whether the word given is actually an existing Czech verb. That being said, it **will** attempt conjugate non-Czech words such as *racket*, *gadget*, *habit*, *snout* and so forth since they **look** like verbs. This also includes Czech nouns that look like verbs.
+3. This conjugator is naive. It cannot recognize whether the word given is actually an existing Czech verb. That being said, it **will** attempt conjugate non-Czech words such as *racket*, *gadget*, *habit*, *snout* and so forth since they **look** like verbs. This also includes Czech nouns that look like verbs.
 4. This conjugator may not conjugate ***all*** verbs correctly, though I tried my best in covering the vast majoity of edge cases (irregular, slightly irregular, etc.). This is because the verbs I used to test the conjugator came from here: https://en.wiktionary.org/wiki/Category:Czech_verbs, where it has (as of December 25th, 2022) 4,573 verbs. I did not test all of them. The majority of the verbs in that list are regular.
 
 ## Requirements:
