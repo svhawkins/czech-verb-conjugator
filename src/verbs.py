@@ -10,7 +10,7 @@
 # TODO/FIXME: the conjugations actually have to be tested. store the forms as private members that are generated.
 from prettytable import PrettyTable
 import re
-import src.verb_utils as vutils
+import verb_utils as vutils
 
 # base class, contains code to construct the conjugation tables and non-present tenses and non-indicative moods
 class Verb:

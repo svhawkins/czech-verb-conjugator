@@ -1,6 +1,8 @@
-import src.verb_utils as vutils
-import src.conjugator_utils as conjutils
+import verb_utils as vutils
+import conjugator_utils as conjutils
 import verbs as v
+
+# TODO: actually make this a 'main' function
 ############## MAIN PROGRAM ####################
 
 # TODO: make this a loop to continue conjugating verbs
