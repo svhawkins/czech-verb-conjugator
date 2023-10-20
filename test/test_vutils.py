@@ -3,16 +3,6 @@
 import pytest
 import src.verb_utils as vutils
 
-# dummy test
-def test_hello():
-    print("hello world! :)")
-    assert 493 == 493
-
-# dummy test
-def test_goodbye():
-    print("goodbye world! :(")
-    assert 493 == 493
-
 # tests italics() with the empty string 
 def test_italics():
     test_str=""

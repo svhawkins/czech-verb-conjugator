@@ -2,7 +2,7 @@
 
 import re
 
-# regex patterns -> TODO: make these public? static members
+# regex patterns
 short_vowel = "[aeiouy]"
 long_vowel = "[áéíóúůý]|(ou)"
 soft_vowel = "[ěií]"
@@ -13,13 +13,13 @@ digraph = "(ch)|(st)|(št)|(ct)|(čt)"
 consonant = hard_consonant + "|" + neutral_consonant + "|" + soft_consonant + "|" + digraph
 vowel = short_vowel + "|" + long_vowel + "|" + soft_vowel
 
-# dictionaries for letter mappings -> TODO: make these private static members
+# dictionaries for letter mappings
 hard_to_soft = {"k":"c", "d":"ď", "g":"z", "h":"z", "n":"ň", "r":"ř", "ch":"š", "t":"ť"}
 soft_to_hard = {"c":"k", "ď":"d","z":"h", "ň":"n", "ř":"r", "š":"ch", "ť":"t"}
 long_to_short = {"á":"a", "é":"e", "í":"i", "ů":"o", "ou":"u", "ý":"y"}
 short_to_long = {"a":"á", "e":"é", "i":"í", "o":"ů", "u":"ou", "y":"ý"}
 
-# helper functions -> TODO: make these private members
+# helper functions
 def italics(string):
 	return "\x1B[3m" + string + "\x1B[23m"
 
