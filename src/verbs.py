@@ -5,7 +5,8 @@
 # each of these derived classes have subclasses for differing (though nonetheless the same endings):
 # class1 has 1 subclass, class2 with 2, class3 with 1, and class4 with 4
 
-# all verbs 2 strings during init: infinitive
+# all verbs 2 strings during init: infinitive and ending
+# optional flags can also be passed in: is_perfective (bool) , is_motion (tuple)
 
 
 # TODO:
@@ -29,7 +30,6 @@ class Tense(IntEnum): # includes MOOD AND VOICE AND OTHER PARTICIPLES AS WELL
 	#NOUN = 7
 	#TRANSGRESSIVE = 8
 	#PAST_TRANSGRESSIVE = 9
-	NUM_TENSE = 5
 
 class Person(IntEnum): # includes also NUMBER
 	FIRST_SG = 0
@@ -38,37 +38,37 @@ class Person(IntEnum): # includes also NUMBER
 	FIRST_PL = 3
 	SECOND_PL = 4
 	THIRD_PL = 5
-	NUM_PERSON = 6
 
 # lambdas
 is_none_value = lambda tense, person: (tense == Tense.IMPERATIVE and
 										(person == Person.FIRST_SG or
 			   							 person == Person.THIRD_SG or
 										 person == Person.THIRD_PL ))
+get_motion = lambda motion_tuple: (motion_tuple[0])
+get_motion_prefix = lambda motion_tuple: (motion_tuple[1])
 
 
 class Verb:
 	# static/protected class members --> constant for ALL verbs pretty much unless aspect stuff appears
 
 	# past participle endings: 1st singular, 2nd singular, 3rd singular, 1st plural, 2nd plural, 3rd plural
-	_empty = ["", "", "", "", "", ""]
-	_participle_endings = ["/a", "/a", "/a/o", "i/y", "i/y", "i/y/a"]
-	_present_endings = ["", "", "", "", "", ""]  # is made in derived classes
-	_imperative_endings = [ None, "", None, "me", "te",  None ] # singular 2nd person only (just stem), plural 1st 2nd only
-	_endings = [ _present_endings, _participle_endings, _imperative_endings ]
+	_empty = ("", "", "", "", "", "")
+	_participle_endings = ("/a", "/a", "/a/o", "i/y", "i/y", "i/y/a")
+	_present_endings = ("", "", "", "", "", "")  # is made in derived classes
+	_imperative_endings = ( None, "", None, "me", "te",  None ) # singular 2nd person only (just stem), plural 1st 2nd only
 
 	# auxiliary verb endings
-	_past_auxiliary = ["jsem", "jsi/jseš", "", "jsme", "jste", ""]
-	_future_auxiliary = ["budu", "budeš", "bude", "budeme", "budete", "budou"]
-	_conditional_auxiliary = ["bych", "bys", "by", "bychom", "byste", "by"]
-	_auxiliaries = [ _past_auxiliary, _future_auxiliary, _conditional_auxiliary ]
+	_past_auxiliary = ("jsem", "jsi/jseš", "", "jsme", "jste", "")
+	_future_auxiliary = ("budu", "budeš", "bude", "budeme", "budete", "budou")
+	_conditional_auxiliary = ("bych", "bys", "by", "bychom", "byste", "by")
+	_auxiliaries = ( _past_auxiliary, _future_auxiliary, _conditional_auxiliary )
 
 	# tense to (auxiliary) ending mappings
 	# present,past,future,imperative,conditional
 	_tense_to_ending = [ _present_endings, _participle_endings, _empty, _imperative_endings, _participle_endings]
 	_tense_to_auxiliary = [ _empty, _past_auxiliary, _future_auxiliary, _empty, _conditional_auxiliary]
 
-	def __init__(self, infinitive = "", ending = ""):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		# stems (public)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -79,24 +79,31 @@ class Verb:
 		#self.passive_stem = ""
 		#self.present_transgressive_stem = ""
 		#self.past_transgressive_stem = ""
-		self._prefix = ""
 
 		# stems. make sure the 'future stem' does NOT contain the negation prefix ne-
 		self._is_negative = False
 		future_stem = self.infinitive
-		if self._prefix[:2] == "ne":
+		if self.infinitive[:2] == "ne":
 			future_stem = self.infinitive[2:]
+			self._is_negative = True
 		self._stems = [ self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-		self._is_perfective = False # overrides default future conjugation (and a few other things)
-		self._future_prefix = "" # usually verbs of motion take a future prefix instead an auxiliary
+		self._is_perfective = is_perfective
+		if is_perfective: # overrides default future conjugation
+			# future tense will use present endings, and thus have an 'empty' auxiliary
+			self._tense_to_ending[Tense.FUTURE] = self._present_endings
+			self._tense_to_auxiliary[Tense.FUTURE] = self._empty
+			self._tense_to_ending[Tense.PRESENT] = self._empty
+		
+		# usually verbs of motion take a future prefix instead an auxiliary
+		# these are always imperfective, so the perfective future override need not apply.
+		self._is_motion = is_motion
+		if get_motion(self._is_motion):
+			self._tense_to_auxiliary[Tense.FUTURE] = self._empty
+			self._tense_to_ending[Tense.FUTURE] = self._present_endings
 
 		# conjugation table
-		self._conjugation_table = []
-		for tense in range(Tense.NUM_TENSE):
-			self._conjugation_table.append([])
-			for person in range(Person.NUM_PERSON):
-				self._conjugation_table[tense].append("")
+		self._conjugation_table = [["" for person in range(len(Person))] for tense in range(len(Tense))]
 
 	def kind(self):
 		'''displays verb conjugation class information'''
@@ -123,33 +130,30 @@ class Verb:
 		auxiliary = (self._tense_to_auxiliary[tense])[person]
 		ending = (self._tense_to_ending[tense])[person]
 		conjugation = ""
+		space = " " if auxiliary != "" else "" # so no space AFTER
 		if not is_none_value(tense, person):
 			# future tense: future auxiliary + infinitive if there is no override
-			conjugation = self._stems[tense] + ending + " " + auxiliary
-			if tense == Tense.FUTURE:
+			conjugation = self._stems[tense] + ending + space + auxiliary
+			if tense == Tense.FUTURE and not self._is_perfective:
+				space = "" if self._stems[tense] == "" else space # so no space AFTER
+				conjugation = auxiliary + space + self._stems[tense] + ending
+				if get_motion(self._is_motion):
+					conjugation = get_motion_prefix(self._is_motion) + self._stems[tense] + ending
 				if self._is_negative:
-					auxiliary = "ne" + auxiliary
-				conjugation = auxiliary + " " + self._stems[tense] + ending
-
-			# perfective verbs override future conjugation to be present.
-			# present tense becomes empty.
-			if self._is_perfective:
-				conjugation = "" if tense == Tense.PRESENT else conjugation
-				conjugation = self._stems[Tense.PRESENT] + self._tense_to_ending[Tense.PRESENT] if tense == Tense.FUTURE else conjugation
-
+					conjugation = "ne" + conjugation
 		return conjugation
 
-	def conjugate(self, tense_idx = Tense.NUM_TENSE, person_idx = Person.NUM_PERSON):
+	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
 		'''Conjugates a verb according provided tense and person
 		tense refers to any one of the integer constants defined in Tense
 		person refers to any one of the integer constants defined in Person
 		'''
 
-		# TODO: indicate error if out of enum range
+		# TODO: don't do anything if out of enum range
 
 		# set up ranges for given tense and person
-		tense_range = range(tense_idx, tense_idx + 1) if tense_idx != Tense.NUM_TENSE else range(Tense.NUM_TENSE)
-		person_range = range(person_idx, person_idx + 1) if person_idx != Person.NUM_PERSON else range(Person.NUM_PERSON)
+		tense_range = range(tense_idx, tense_idx + 1) if tense_idx != len(Tense) else range(len(Tense))
+		person_range = range(person_idx, person_idx + 1) if person_idx != len(Person) else range(len(Person))
 
 		for tense in tense_range:
 			for person in person_range:
@@ -158,74 +162,82 @@ class Verb:
 	def get_conjugation_at(self, tense_idx, person_idx):
 		'''Returns A conjugation at specified indices'''
 
-		# TODO: indicate error if outof range
+		# TODO: don't do anything if out of enum range (empty string??)
 		return self._conjugation_table[tense_idx][person_idx]
 	
 	def clear_table(self):
 		'''Clears the conjugation table'''
-		for tense in range(Tense.NUM_TENSE):
-			for person in range(Person.NUM_PERSON):
+		for tense in range(len(Tense)):
+			for person in range(len(Person)):
 				self._conjugation_table[tense][person] = ""
 
+	def get_table(self):
+		'''Retrieves the conjugation table'''
+		return self._conjugation_table
+
 # completely irregular, so has own class for itself
+# this covers ONLY the verb být and its negated form nebýt
 class Byt(Verb):
-	_present_endings = ["jsem", "jseš/jsi", "je", "jsme", "jste", "jsou"]
-	_endings = [ _present_endings, Verb._participle_endings, Verb._imperative_endings ]
-	def __init__(self, infinitive, ending = ""):
-		super().__init__(infinitive, ending)
+	_present_endings = ("jsem", "jseš/jsi", "je", "jsme", "jste", "jsou")
+	_endings = (_present_endings, Verb._participle_endings, Verb._imperative_endings )
+	def __init__(self, infinitive, ending = "", is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion )
 		self._prefix = infinitive[:-len("být")]
 		self.infinitive = infinitive
-		self.ending = ""
-		self.stem =  ""
-		self.present_stem = ""
 		self.past_stem = self._prefix + "byl"
 		self.imperative_stem = self._prefix + "buď"
-
-		self._is_negative = False
-		if self._prefix[:2] == "ne":
-			self._is_negative = True
-		self._stems = [ self.present_stem, self.past_stem, self.infinitive[2:], self.imperative_stem, self.past_stem ]
-
-		self._is_perfective = False # overrides default future conjugation (and a few other things)
-		self._future_prefix = "" # usually verbs of motion take a future prefix instead an auxiliary
-
-		# future tense does not use být infinitive (UNPREFIXED). that would be redundant!
-		# the future auxiliary is just the future form of být!
-		self._stems[Tense.FUTURE] = ""
+		
+		# update stems, future is empty since would be redundant to have bud- + být. Auxiliary is just future být!
+		self._stems = [ self.present_stem, self.past_stem, "", self.imperative_stem, self.past_stem ]
+		
+		# update the endings for it to be to this class
+		self._tense_to_auxiliary[Tense.PRESENT] = self._present_endings
 
 	def kind(self):
 		print("Irregular verb: ", self.infinitive)
 	
-	def conjugate(self, tense_idx = Tense.NUM_TENSE, person_idx = Person.NUM_PERSON):
+	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
 		super().conjugate(tense_idx, person_idx)
 
-		# update the present tense with the present endings
+		# update the present tense with the present endings since there is no present stem
 		negation_prefix = "ne" if self._is_negative == True else ""
-		for person in range(Person.NUM_PERSON):
+		for person in range(len(Person)):
 			ending = "ní" if self._is_negative and person == Person.THIRD_SG else self._present_endings[person]
 			self._conjugation_table[Tense.PRESENT][person] = negation_prefix + ending
 
-# class Class1(Verb):
-# 	# verb class specific endings:
-# 	_present_endings = [ "ám", "áš", "á", "áme" ,"áte", "ají" ]
-# 	def __init__(self, infinitive = "", ending = ""):
-# 		Verb.__init__(self, infinitive, ending)
+class Class1(Verb):
+	# verb class specific endings:
+	_present_endings = [ "ám", "áš", "á", "áme" ,"áte", "ají" ]
 
-# 	def kind(self):
-# 		print("Class I verb, conjugates according to -at/-át paradigm")
+	# sanity check, was making past, present, and future tack on present být conjugations otherwise
+	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
+	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
 
-# class Class1_at(Class1):
-# 	def __init__(self, infinitive, ending):
-# 		self.infinitive = infinitive
-# 		self.ending = ending
-# 		self.stem = infinitive[:-len(ending)]
-# 		self.present_stem = self._stem
-# 		self.past_stem = self._stem + "al"
-# 		self.imperative_stem = self._stem + "ej"
-# 		#self.passive_stem = self._stem + "án"
+		# update endings
+		self._tense_to_ending[Tense.PRESENT] = self._present_endings
 
-# 	def kind(self):
-# 		print("Class I verb subclass, specific to regular -at/-át verbs")
+	def kind(self):
+		print("Class I verb, conjugates according to -at/-át paradigm")
+
+class Class1_at(Class1):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = infinitive[:-len(ending)]
+		self.present_stem = self.stem
+		self.past_stem = self.stem + "al"
+		self.imperative_stem = self.stem + "ej"
+		#self.passive_stem = self._stem + "án"
+
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
+
+	def kind(self):
+		print("Class I verb subclass, specific to regular -at/-át verbs")
 
 # class Class2(Verb):
 # 	# class specific endings
@@ -237,10 +249,10 @@ class Byt(Verb):
 # 		print("Class II verb, conjugates according to -ít/-ýt/-ovat paradigm")
 
 # 	def _apply_chtit_correction(self, tense_idx, person_idx):
-# 		if ((tense_idx == Tense.PRESENT or tense_idx == Tense.NUM_TENSE)):
-# 			if (person_idx == Person.FIRST_SG or person_idx == Person.NUM_PERSON):
+# 		if ((tense_idx == Tense.PRESENT or tense_idx == len(Tense))):
+# 			if (person_idx == Person.FIRST_SG or person_idx == len(Person)):
 # 				self._conjugation_table[Tense.PRESENT][Person.FIRST_SG] = "chci"
-# 			if (person_idx == Person.THIRD_PL or person_idx == Person.NUM_PERSON):
+# 			if (person_idx == Person.THIRD_PL or person_idx == len(Person)):
 # 				self._conjugation_table[Tense.PRESENT][Person.THIRD_PL] = "chtějí"
 # 		return
 		
