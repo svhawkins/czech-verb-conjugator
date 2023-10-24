@@ -439,3 +439,298 @@ def test_class1_at_long_a():
 
 
 ############# REGULAR CLASS 2 VERBS ###################
+
+# tests conjugation of the ít/ýt subclass
+def test_class2_yt():
+    a = v.Class2_ityt("být", "ýt")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["byji/u", "byješ", "byje", "byjeme", "byjete", "byjí"]
+    expected_past = ["byl/a jsem", "byl/a jsi/jseš", "byl/a/o", "byli/y jsme", "byli/y jste", "byli/y/a"]
+    expected_future = ["budu být", "budeš být", "bude být", "budeme být", "budete být", "budou být"]
+    expected_imperative = ["", "byj", "", "byjme", "byjte", ""]
+    expected_conditional = ["byl/a bych", "byl/a bys", "byl/a/o by", "byli/y bychom", "byli/y byste", "byli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "být"
+    assert a.ending == "ýt"
+    assert a.stem == "b"
+    assert a.present_stem == "byj"
+    assert a.past_stem == "byl"
+    assert a.imperative_stem == "byj"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!
+
+def test_class2_it():
+    a = v.Class2_ityt("bít", "ít")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["biji/u", "biješ", "bije", "bijeme", "bijete", "bijí"]
+    expected_past = ["bil/a jsem", "bil/a jsi/jseš", "bil/a/o", "bili/y jsme", "bili/y jste", "bili/y/a"]
+    expected_future = ["budu bít", "budeš bít", "bude bít", "budeme bít", "budete bít", "budou bít"]
+    expected_imperative = ["", "bij", "", "bijme", "bijte", ""]
+    expected_conditional = ["bil/a bych", "bil/a bys", "bil/a/o by", "bili/y bychom", "bili/y byste", "bili/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "bít"
+    assert a.ending == "ít"
+    assert a.stem == "b"
+    assert a.present_stem == "bij"
+    assert a.past_stem == "bil"
+    assert a.imperative_stem == "bij"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!
+
+# tests that the chtít correction is applied on (un)prefixed chtít-like verbs (tests conjugations only affected by correction)
+def test_class2_chtit_correction():
+    a = v.Class2_ityt("chtít", "ít")
+    a.conjugate(v.Tense.PRESENT, v.Person.FIRST_SG)
+    a.conjugate(v.Tense.PRESENT, v.Person.THIRD_PL)
+    assert a.get_conjugation_at(v.Tense.PRESENT, v.Person.FIRST_SG) == "chci"
+    assert a.get_conjugation_at(v.Tense.PRESENT, v.Person.THIRD_PL) == "chtějí"
+
+    b = v.Class2_ityt("nechtít", "ít")
+    b.conjugate(v.Tense.PRESENT, v.Person.FIRST_SG)
+    b.conjugate(v.Tense.PRESENT, v.Person.THIRD_PL)
+    assert b.get_conjugation_at(v.Tense.PRESENT, v.Person.FIRST_SG) == "nechci"
+    assert b.get_conjugation_at(v.Tense.PRESENT, v.Person.THIRD_PL) == "nechtějí"
+
+    c = v.Class2_ityt("zachtít", "ít")
+    c.conjugate(v.Tense.PRESENT, v.Person.FIRST_SG)
+    c.conjugate(v.Tense.PRESENT, v.Person.THIRD_PL)
+    assert c.get_conjugation_at(v.Tense.PRESENT, v.Person.FIRST_SG) == "zachci"
+    assert c.get_conjugation_at(v.Tense.PRESENT, v.Person.THIRD_PL) == "zachtějí"
+
+    d = v.Class2_ityt("nezachtít", "ít")
+    d.conjugate(v.Tense.PRESENT, v.Person.FIRST_SG)
+    d.conjugate(v.Tense.PRESENT, v.Person.THIRD_PL)
+    assert d.get_conjugation_at(v.Tense.PRESENT, v.Person.FIRST_SG) == "nezachci"
+    assert d.get_conjugation_at(v.Tense.PRESENT, v.Person.THIRD_PL) == "nezachtějí"
+
+# tests the conjugation of the ovat subclass
+def test_class2_ovat():
+    a = v.Class2_ovat("bovat", "ovat")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["buji/u", "buješ", "buje", "bujeme", "bujete", "bují"]
+    expected_past = ["boval/a jsem", "boval/a jsi/jseš", "boval/a/o", "bovali/y jsme", "bovali/y jste", "bovali/y/a"]
+    expected_future = ["budu bovat", "budeš bovat", "bude bovat", "budeme bovat", "budete bovat", "budou bovat"]
+    expected_imperative = ["", "buj", "", "bujme", "bujte", ""]
+    expected_conditional = ["boval/a bych", "boval/a bys", "boval/a/o by", "bovali/y bychom", "bovali/y byste", "bovali/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "bovat"
+    assert a.ending == "ovat"
+    assert a.stem == "b"
+    assert a.present_stem == "buj"
+    assert a.past_stem == "boval"
+    assert a.imperative_stem == "buj"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+
+
+###### REGULAR CLASS 3 VERBS #####
+
+###### REGULAR CLASS 4 VERBS #####
+
+# tests conjugation of -nout subclass
+def test_class4_nout_with_vowel():
+    a = v.Class4_nout("bnout", "nout")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["bnu", "bneš", "bne", "bneme", "bnete", "bnou"]
+    expected_past = ["bnul/a jsem", "bnul/a jsi/jseš", "bnul/a/o", "bnuli/y jsme", "bnuli/y jste", "bnuli/y/a"]
+    expected_future = ["budu bnout", "budeš bnout", "bude bnout", "budeme bnout", "budete bnout", "budou bnout"]
+    expected_imperative = ["", "bni", "", "bněme", "bněte", ""]
+    expected_conditional = ["bnul/a bych", "bnul/a bys", "bnul/a/o by", "bnuli/y bychom", "bnuli/y byste", "bnuli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "bnout"
+    assert a.ending == "nout"
+    assert a.stem == "b"
+    assert a.present_stem == "bn"
+    assert a.past_stem == "bnul"
+    assert a.imperative_stem == "bni"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+def test_class4_nout_without_vowel():
+    a = v.Class4_nout("benout", "nout")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["benu", "beneš", "bene", "beneme", "benete", "benou"]
+    expected_past = ["benul/a jsem", "benul/a jsi/jseš", "benul/a/o", "benuli/y jsme", "benuli/y jste", "benuli/y/a"]
+    expected_future = ["budu benout", "budeš benout", "bude benout", "budeme benout", "budete benout", "budou benout"]
+    expected_imperative = ["", "beň", "", "beňme", "beňte", ""]
+    expected_conditional = ["benul/a bych", "benul/a bys", "benul/a/o by", "benuli/y bychom", "benuli/y byste", "benuli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "benout"
+    assert a.ending == "nout"
+    assert a.stem == "be"
+    assert a.present_stem == "ben"
+    assert a.past_stem == "benul"
+    assert a.imperative_stem == "beň"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+# tests -st subclass
+def test_class4_st():
+    a = v.Class4_st("bást", "st")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["badu", "badeš", "bade", "bademe", "badete", "badou"]
+    expected_past = ["badl/a jsem", "badl/a jsi/jseš", "badl/a/o", "badli/y jsme", "badli/y jste", "badli/y/a"]
+    expected_future = ["budu bást", "budeš bást", "bude bást", "budeme bást", "budete bást", "budou bást"]
+    expected_imperative = ["", "baď", "", "baďme", "baďte", ""]
+    expected_conditional = ["badl/a bych", "badl/a bys", "badl/a/o by", "badli/y bychom", "badli/y byste", "badli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "bást"
+    assert a.ending == "st"
+    assert a.stem == "ba"
+    assert a.present_stem == "bad"
+    assert a.past_stem == "badl"
+    assert a.imperative_stem == "baď"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+
+# tests conjugation of -zt subclass
+def test_class4_zt():
+    a = v.Class4_zt("bázt", "zt")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["bazu", "bazeš", "baze", "bazeme", "bazete", "bazou"]
+    expected_past = ["bazl/a jsem", "bazl/a jsi/jseš", "bazl/a/o", "bazli/y jsme", "bazli/y jste", "bazli/y/a"]
+    expected_future = ["budu bázt", "budeš bázt", "bude bázt", "budeme bázt", "budete bázt", "budou bázt"]
+    expected_imperative = ["", "baz", "", "bazme", "bazte", ""]
+    expected_conditional = ["bazl/a bych", "bazl/a bys", "bazl/a/o by", "bazli/y bychom", "bazli/y byste", "bazli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "bázt"
+    assert a.ending == "zt"
+    assert a.stem == "ba"
+    assert a.present_stem == "baz"
+    assert a.past_stem == "bazl"
+    assert a.imperative_stem == "baz"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!
+
+# tests conjugation of -ct subclass
+def test_class4_ct():
+    a = v.Class4_ct("báct", "ct")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["baču", "bačeš", "bače", "bačeme", "bačete", "bačou"]
+    expected_past = ["bakl/a jsem", "bakl/a jsi/jseš", "bakl/a/o", "bakli/y jsme", "bakli/y jste", "bakli/y/a"]
+    expected_future = ["budu báct", "budeš báct", "bude báct", "budeme báct", "budete báct", "budou báct"]
+    expected_imperative = ["", "bač", "", "bačme", "bačte", ""]
+    expected_conditional = ["bakl/a bych", "bakl/a bys", "bakl/a/o by", "bakli/y bychom", "bakli/y byste", "bakli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "báct"
+    assert a.ending == "ct"
+    assert a.stem == "ba"
+    assert a.present_stem == "bač"
+    assert a.past_stem == "bakl"
+    assert a.imperative_stem == "bač"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!

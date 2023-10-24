@@ -8,11 +8,6 @@
 # all verbs 2 strings during init: infinitive and ending
 # optional flags can also be passed in: is_perfective (bool) , is_motion (tuple)
 
-
-# TODO:
-# 1. remove the pretty table elements entirely
-		# requires refactoring all the verb classes
-
 import src.verb_utils as vutils
 #import verb_utils as vutils
 import re
@@ -239,81 +234,89 @@ class Class1_at(Class1):
 	def kind(self):
 		print("Class I verb subclass, specific to regular -at/-át verbs")
 
-# class Class2(Verb):
-# 	# class specific endings
-# 	_present_endings = ["i/u", "eš", "e", "eme", "ete", "í"]
-# 	def __init__(self, infinitive = "", ending = ""):
-# 		Verb.__init__(self, infinitive, ending)
+class Class2(Verb):
+	# class specific endings
+	_present_endings = ["i/u", "eš", "e", "eme", "ete", "í"]
+	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
+	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
 
-# 	def kind(self):
-# 		print("Class II verb, conjugates according to -ít/-ýt/-ovat paradigm")
+		# update endings
+		self._tense_to_ending[Tense.PRESENT] = self._present_endings
 
-# 	def _apply_chtit_correction(self, tense_idx, person_idx):
-# 		if ((tense_idx == Tense.PRESENT or tense_idx == len(Tense))):
-# 			if (person_idx == Person.FIRST_SG or person_idx == len(Person)):
-# 				self._conjugation_table[Tense.PRESENT][Person.FIRST_SG] = "chci"
-# 			if (person_idx == Person.THIRD_PL or person_idx == len(Person)):
-# 				self._conjugation_table[Tense.PRESENT][Person.THIRD_PL] = "chtějí"
-# 		return
+	def kind(self):
+		print("Class II verb, conjugates according to -ít/-ýt/-ovat paradigm")
+
+	def _apply_chtit_correction(self, tense_idx, person_idx):
+		if ((tense_idx == Tense.PRESENT or tense_idx == len(Tense))):
+			if (person_idx == Person.FIRST_SG or person_idx == len(Person)):
+				entry = self._conjugation_table[Tense.PRESENT][Person.FIRST_SG]
+				entry = entry[:-8] + "chci"
+				self._conjugation_table[Tense.PRESENT][Person.FIRST_SG] = entry
+			if (person_idx == Person.THIRD_PL or person_idx == len(Person)):
+				entry = self._conjugation_table[Tense.PRESENT][Person.THIRD_PL]
+				entry = entry[:-6] + "chtějí"
+				self._conjugation_table[Tense.PRESENT][Person.THIRD_PL] = entry
+		return
 		
-# 	def conjugate(self, tense_idx, person_idx):
-# 		# if verb is chtít, ALWAYS overwrite/correct it
-# 		Verb.conjugate(self, tense_idx, person_idx)
-# 		if re.search("chtít$", self.infinitive):
-# 			self._apply_chtit_correction(self, tense_idx, person_idx)
+	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
+		# if verb is chtít, ALWAYS overwrite/correct it
+		Verb.conjugate(self, tense_idx, person_idx)
+		if re.search("chtít$", self.infinitive):
+			self._apply_chtit_correction(tense_idx, person_idx)
 
 
-# class Class2_ityt(Class2):
-# 	def __init__(self, infinitive, ending):
-# 		_thematic_vowel = "i" if ending.startswith("í") else "y"
-# 		self.infinitive = infinitive
-# 		self.ending = ending
-# 		self.stem = infinitive[:-len(ending)]
-# 		self.present_stem = self.stem + _thematic_vowel + "j"
-# 		self.past_stem = self.stem + _thematic_vowel + "l"
-# 		self.imperative_stem = self.present_stem
-# 		#self.passive_stem = self.stem + _thematic_vowel + "t"
+class Class2_ityt(Class2):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		_thematic_vowel = "i" if ending.startswith("í") else "y"
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = infinitive[:-len(ending)]
+		self.present_stem = self.stem + _thematic_vowel + "j"
+		self.past_stem = self.stem + _thematic_vowel + "l"
+		self.imperative_stem = self.present_stem
+		#self.passive_stem = self.stem + _thematic_vowel + "t"
 
-# 	def kind(self):
-# 		print("Class II verb subclass, specific to -ít/-ýt verbs")
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-# class Class2_ovat(Class2):
-# 	def __init__(self, infinitive, ending):
-# 		self.infinitive = infinitive
-# 		self.ending = ending
-# 		self.stem = infinitive[:-len(ending)]
-# 		self.present_stem = self.stem + "uj"
-# 		self.past_stem = self.stem + "oval"
-# 		self.imperative_stem = self.present_stem
-# 		#self.passive_stem = self.stem + "ován"
+	def kind(self):
+		print("Class II verb subclass, specific to -ít/-ýt verbs")
 
-# 	def kind(self):
-# 		print("Class II verb subclass, specific to -ovat verbs")
+class Class2_ovat(Class2):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = infinitive[:-len(ending)]
+		self.present_stem = self.stem + "uj"
+		self.past_stem = self.stem + "oval"
+		self.imperative_stem = self.present_stem
+		#self.passive_stem = self.stem + "ován"
 
-# class Class3(Verb):
-# 	def __init__(self, infinitive = "", ending = ""):
-# 		Verb.__init__(self, infinitive, ending)
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-# 	def kind(self):
-# 		print("Class III verb, conjugates according to -it/et/-ět paradigm")
+	def kind(self):
+		print("Class II verb subclass, specific to -ovat verbs")
 
-# 	def _conjugate_present(self):
-# 		# TODO: move the regex to vutils, contains_stem()
-# 		plural_third_ending = "ědí" if re.search("jíst$|sníst$|vědět$", self._infinitive) else "í"
-# 		plural_third = self._present_stem + plural_third_ending
-# 		present_tense = PrettyTable(self._present_header)
-# 		present_conjugation = PrettyTable(self._conjugation_headers)
-# 		present_conjugation.add_row(["1.", self._present_stem + "ím", self._present_stem + "íme"])
-# 		present_conjugation.add_row(["2.", self._present_stem + "íš", self._present_stem + "íte"])
-# 		present_conjugation.add_row(["3.", self._present_stem + "í", plural_third])
-# 		present_tense.add_row([present_conjugation])
-# 		return present_tense
+class Class3(Verb):
+	# class specific endings
+	_present_endings = ["ím", "íš", "í", "íme", "íte", "í"]
+	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
+	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
 
-# 	def conjugate(self):
-# 		print(self._conjugate_present())
-# 		print(Verb._conjugate_imperative(self))
-# 		print(Verb._conjugate_past(self))
-# 		print(Verb._conjugate_conditional(self))
+		# update endings
+		self._tense_to_ending[Tense.PRESENT] = self._present_endings
+
+	def kind(self):
+		print("Class III verb, conjugates according to -it/et/-ět paradigm")
 
 # class Class3_itet(Class3):
 # 	def __init__(self, infinitive, ending):
@@ -370,88 +373,99 @@ class Class1_at(Class1):
 # 	def kind(self):
 # 		print("Class III subclass, specific to regular -it/-et/-ět verbs")
 
-# class Class4(Verb):
-# 	def __init__(self, infinitive = "", ending = ""):
-# 		Verb.__init__(self, infinitive, ending)
+class Class4(Verb):
+	# class specific endings
+	_present_endings = ["u", "eš", "e", "eme", "ete", "ou"]
+	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
+	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
 
-# 	def kind(self):
-# 		print("Class IV verb, conjugates according to -nout/-st/-ct/-zt paradigm")
+	def kind(self):
+		print("Class IV verb, conjugates according to -nout/-st/-ct/-zt paradigm")
 
-# 	def _conjugate_present(self):
-# 		present_tense = PrettyTable(self._present_header)
-# 		present_conjugation = PrettyTable(self._conjugation_headers)
-# 		present_conjugation.add_row(["1.", self._present_stem + "u", self._present_stem + "eme"])
-# 		present_conjugation.add_row(["2.", self._present_stem + "eš", self._present_stem + "ete"])
-# 		present_conjugation.add_row(["3.", self._present_stem + "e", self._present_stem + "ou"])
-# 		present_tense.add_row([present_conjugation])
-# 		return present_tense
+class Class4_nout(Class4):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = infinitive[:-len(ending)]
+		self.present_stem = self.stem + "n"
+		self.imperative_stem = self.stem + "ň" 
+		if not vutils.isvowel(self.stem[-1]):
+			self.imperative_stem = self.stem + "ni"
+		self.past_stem = self.stem + "nul"
+		if not (vutils.isvowel(self.past_stem[0]) or not vutils.contains_vowel(self.past_stem[:-len(self.ending)])):
+			self.past_stem = self.stem + "l" # ie "tiskl"
+			
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-# 	def conjugate(self):
-# 		print(self._conjugate_present())
-# 		print(Verb._conjugate_imperative(self))
-# 		print(Verb._conjugate_past(self))
-# 		print(Verb._conjugate_conditional(self))
+		#self._passive_stem = self._stem + "nut"
 
-# class Class4_nout(Class4):
-# 	def __init__(self, infinitive, ending):
-# 		self._infinitive = infinitive
-# 		self._ending = ending
-# 		self._stem = infinitive[:-len(ending)]
-# 		self._present_stem = self._stem + "n"
-# 		self._imperative_stem = self._stem + "ň" if vutils.isvowel(self._stem[-1]) else self._stem + "ni"
-# 		self._past_stem = self._stem
-# 		if vutils.isvowel(self._past_stem[0]) or  not vutils.contains_vowel(self._past_stem[:-len(self._ending)]):
-# 			self._past_stem += "nul"
-# 		else:
-# 			self._past_stem += "l"
-# 		#self._passive_stem = self._stem + "nut"
+	def kind(self):
+		print("Class IV verb subclass, specific for -nout verbs")
 
-# 		#self._past_stem_variant = self._stem[:-1] + "něl"
-# 		#self._passive_stem_variant = self._stem[:-1] + "něn"
+	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
+		Verb.conjugate(self, tense_idx, person_idx)
 
-# 	def kind(self):
-# 		print("Class IV verb subclass, specific for -nout verbs")
+		# apply imperative corrections if stem is -ni
+		if self.imperative_stem[-2:] == "ni":
+			self._conjugation_table[Tense.IMPERATIVE][Person.FIRST_PL] = self.imperative_stem[:-1] + "ěme"
+			self._conjugation_table[Tense.IMPERATIVE][Person.SECOND_PL] = self.imperative_stem[:-1] + "ěte"
 
-# 	def stems(self):
-# 		Verb.stems(self)
-# 		#print("past stem variant: ", self._past_stem_variant)
-# 		#print("passive stem variant: ", self._passive_stem_variant)
 
-# class Class4_st(Class4):
-# 	def __init__(self, infinitive, ending):
-# 		self._infinitive = infinitive
-# 		self._ending = ending
-# 		self._stem = vutils.shorten(infinitive[:-len(ending)])
-# 		self._present_stem = self._stem + "d"
-# 		self._past_stem = self._present_stem + "l"
-# 		#self._passive_stem = self._present_stem + "en"
-# 		self._imperative_stem = vutils.soften(self._present_stem)
+class Class4_st(Class4):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = vutils.shorten(infinitive[:-len(ending)])
+		self.present_stem = self.stem + "d"
+		self.past_stem = self.present_stem + "l"
+		#self.passive_stem = self.present_stem + "en"
+		self.imperative_stem = self.stem + vutils.get_soft_consonant(self.present_stem[-1])
 
-# 	def kind(self):
-# 		print("Class IV verb subclass, specific for -st verbs")
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-# class Class4_zt(Class4):
-# 	def __init__(self, infinitive, ending):
-# 		self._infinitive = infinitive
-# 		self._ending = ending
-# 		self._stem = vutils.shorten(infinitive[:len(ending)])
-# 		self._present_stem = self._stem + "z"
-# 		self._past_stem = self._present_stem + "l"
-# 		#self._passive_stem = self._present_stem + "en"
-# 		self._imperative_stem = self._present_stem
+	def kind(self):
+		print("Class IV verb subclass, specific for -st verbs")
 
-# 	def kind(self):
-# 		print("Class IV verb subclass, specific to -zt verbs")
+class Class4_zt(Class4):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self._infinitive = infinitive
+		self.ending = ending
+		self.stem = vutils.shorten(infinitive[:len(ending)])
+		self.present_stem = self.stem + "z"
+		self.past_stem = self.present_stem + "l"
+		#self.passive_stem = self._present_stem + "en"
+		self.imperative_stem = self.present_stem
 
-# class Class4_ct(Class4):
-# 	def __init__(self, infinitive, ending):
-# 		self._infinitive = infinitive
-# 		self._ending = ending
-# 		self._stem = vutils.shorten(infinitive[:-len(ending)])
-# 		self._present_stem = self._stem + "č"
-# 		self._past_stem = self._stem + "kl"
-# 		#self._passive_stem = self._present_stem + "en"
-# 		self._imperative_stem = self._present_stem
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-# 	def kind(self):
-# 		print("Class IV verb subclass, specific to -ct verbs")
+	def kind(self):
+		print("Class IV verb subclass, specific to -zt verbs")
+
+class Class4_ct(Class4):
+	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.infinitive = infinitive
+		self.ending = ending
+		self.stem = vutils.shorten(infinitive[:-len(ending)])
+		self.present_stem = self.stem + "č"
+		self.past_stem = self.stem + "kl"
+		#self.passive_stem = self.present_stem + "en"
+		self.imperative_stem = self.present_stem
+
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
+
+	def kind(self):
+		print("Class IV verb subclass, specific to -ct verbs")
