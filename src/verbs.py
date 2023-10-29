@@ -1,12 +1,13 @@
 # module containing the verb classes to conjugate a czech verb
 # the base class is Verb responsible for majority of the conjugations
 # the derived classes do the present tense as well as set the necessary stems for the conjugations
-# 5 derived classes: class1, class2, class3, class4, and (entirely irregular)
+# 5 derived classes: class1, class2, class3, class4, and být (entirely irregular)
 # each of these derived classes have subclasses for differing (though nonetheless the same endings):
 # class1 has 1 subclass, class2 with 2, class3 with 1, and class4 with 4
 
 # all verbs 2 strings during init: infinitive and ending
 # optional flags can also be passed in: is_perfective (bool) , is_motion (tuple)
+# these flags modify endings in some conjugations
 
 import src.verb_utils as vutils
 #import verb_utils as vutils
@@ -137,15 +138,12 @@ class Verb:
 				if self._is_negative:
 					conjugation = "ne" + conjugation
 		return conjugation
-
+	
 	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
 		'''Conjugates a verb according provided tense and person
 		tense refers to any one of the integer constants defined in Tense
 		person refers to any one of the integer constants defined in Person
 		'''
-
-		# TODO: don't do anything if out of enum range
-
 		# set up ranges for given tense and person
 		tense_range = range(tense_idx, tense_idx + 1) if tense_idx != len(Tense) else range(len(Tense))
 		person_range = range(person_idx, person_idx + 1) if person_idx != len(Person) else range(len(Person))
@@ -155,10 +153,9 @@ class Verb:
 				self._conjugation_table[tense][person] = self._get_conjugation(tense, person)
 
 	def get_conjugation_at(self, tense_idx, person_idx):
-		'''Returns A conjugation at specified indices'''
-
-		# TODO: don't do anything if out of enum range (empty string??)
-		return self._conjugation_table[tense_idx][person_idx]
+		'''Returns a conjugation at the specified indices'''
+		valid_cond = (tense_idx >= 0 and tense_idx < len(Tense)) and (person_idx >= 0 and person_idx < len(Person))
+		return self._conjugation_table[tense_idx][person_idx] if valid_cond else ""
 	
 	def clear_table(self):
 		'''Clears the conjugation table'''
@@ -318,45 +315,20 @@ class Class3(Verb):
 	def kind(self):
 		print("Class III verb, conjugates according to -it/et/-ět paradigm")
 
-# class Class3_itet(Class3):
-# 	def __init__(self, infinitive, ending):
-# 		_thematic_vowel = ending[0]
-# 		self._infinitive = infinitive
-# 		self._ending = ending
-# 		self._stem = vutils.soften(infinitive[:-len(ending)])
-# 		self._present_stem = vutils.harden(self._stem)
-# 		self._past_stem = self._present_stem + _thematic_vowel + "l"
+class Class3_itet(Class3):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self._thematic_vowel = ending[0] # the thematic vowel is important here!
+		not_ending = infinitive[:-len(ending)]
+		self.infinitive = infinitive
+		self.ending = ending
+		self.present_stem = not_ending
+		self.past_stem = not_ending + self._thematic_vowel + "l"
+		self.stem = not_ending[:-1]+ vutils.get_soft_consonant(not_ending[-1])
+		self.imperative_stem = self.stem
 
-# 		consonants = "(" + vutils.consonant + "{1}|" + vutils.digraph + "){1}" # polygraphs/multigraphs though single phonemes
-
-# 		# long vowels and non-clusters have j added to imperative with thematic vowel
-# 		# TODO: move the regex to vutils, you can define the regex strings here, contains_stem()
-# 		if re.search(vutils.long_vowel + consonants + "[eě]t$", self._infinitive) or re.search("ou" + consonants + "[eě]t$", self._infinitive):
-# 			self._imperative_stem = self._present_stem + _thematic_vowel + "j"
-# 		# ditto with (some) neutral consonants
-# 		elif re.search("[bmvs]ět$", self._infinitive) or re.search("víjet$", self._infinitive):
-# 			self._imperative_stem  = self._present_stem + _thematic_vowel + "j"
-# 		# long vowels, non clusters and SHORT thematic vowel has the root vowel shortened
-# 		elif x := re.findall(vutils.long_vowel + vutils.consonant + "{1}it$", self._infinitive) or re.findall("ou" + vutils.consonant + "{1}it$", self._infinitive):
-# 			# 1. check if the verb matches the above pattern
-# 			# 2. isolate the contained long vowel
-# 			# 3. replace long vowel with its shortened in the original stem
-# 			y = re.findall(vutils.long_vowel, x[0]) or re.findall("ou", x[0])
-# 			self._imperative_stem = re.sub(y[0], vutils.get_short_vowel(y[0]), self._stem)
-
-# 		# fixing imperative stem if digraph
-# 		elif x := re.findall(vutils.digraph + "$", self._infinitive[:-2]):
-# 			self._imperative_stem = self._present_stem
-# 		else:
-# 			self._imperative_stem = self._stem
-
-# 		# non-cluster stems are softened, otherwise add i
-# 		if x := re.findall("[^aeiouyrlě]{2}", self._imperative_stem[-2:]):
-# 			if y := re.findall(vutils.digraph, x[0]) and not re.search("[ei]", self._imperative_stem[-3]):
-# 				self._imperative_stem = vutils.soften(self._imperative_stem)
-# 			else:
-# 				self._imperative_stem = vutils.harden(self._imperative_stem) + "i"
-
+		# update the imperative stem, there are many edge cases!
+		self._update_imperative_stem()
 
 # 		#self._passive_stem = self._stem[:-1] if _thematic_vowel == "i" else (self._stem + _thematic_vowel + "n")
 # 		#if _thematic_vowel == "i":
@@ -370,8 +342,61 @@ class Class3(Verb):
 # 		#		case _:
 # 		#			self._passive_stem += self._present_stem[-1] + "en"
 
-# 	def kind(self):
-# 		print("Class III subclass, specific to regular -it/-et/-ět verbs")
+		# update stems
+		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
+		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
+
+	def _update_imperative_stem(self):
+		'''Updates the imperative stem according to edge cases'''
+
+		# syllables
+		syllables = vutils.Syllables(self.present_stem)
+
+		# the actually exceptional-but-still-regular cases are here:
+		if re.search("slzet$", self.infinitive):
+			self.imperative_stem = self.stem + "ej"
+		elif re.search("(pustit|půjčit)$", self.infinitive):
+			self.imperative_stem = self.stem
+		elif re.search("(chvět|ouštět)$", self.infinitive):
+			self.imperative_stem = self.present_stem + "ěj"
+		
+		# the actual special cases
+
+		# 1. neutral consonant with -ět: this gets -ěj
+		elif re.search( vutils.neutral_consonant + "ět$", self.infinitive)\
+			and not syllables.is_syllabic(-1) and syllables.contains_vowel(-1):
+			self.imperative_stem = self.present_stem + "ěj"
+
+		# 2. ends in 2+ non-syllabic consonants, regardless of ending:
+		# aka a CONSONANT CLUSTER! Add an -i.
+		elif (re.search("(" + vutils.consonant_or_digraph + "){2}[ieě]t$", self.infinitive)\
+			and not vutils.Syllables(self.present_stem).is_syllabic(-1)) or\
+			(syllables.is_syllabic(-1) and syllables.contains_cluster(-1)):
+			self.imperative_stem = self.present_stem + "i"	
+
+		# 2. long vowel followed by a consonant/digraph ending with -et/-ět
+		# this gives it the -ěj or -ej ending
+		elif re.search("((" + vutils.long_vowel + ")(" + vutils.consonant_or_digraph + "){1}[eě]t$)", self.infinitive):
+			self.imperative_stem = self.present_stem if self._thematic_vowel == "ě" else self.stem 
+			self.imperative_stem += self._thematic_vowel + "j"
+	
+		# 3. long vowel followed by a SINGLE consonant with -it:
+		# this shortens the (final) long vowel present in the stem
+		elif re.search("(" + vutils.long_vowel + "(" + vutils.consonant + "){1}" + "it$)", self.infinitive):
+			self.imperative_stem = vutils.shorten(self.stem)
+
+		# the actually exceptional-but-still-regular cases are here:
+		if re.search("slzet$", self.infinitive):
+			self.imperative_stem = self.stem + "ej"
+		elif re.search("pustit$", self.infinitive):
+			self.imperative_stem = self.stem
+		elif re.search("chvěj$", self.infinitive):
+			self.imperative_stem = self.stem + "ěj"
+
+		
+
+	def kind(self):
+		print("Class III subclass, specific to regular -it/-et/-ět verbs")
 
 class Class4(Verb):
 	# class specific endings

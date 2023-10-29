@@ -568,6 +568,193 @@ def test_class2_ovat():
 
 ###### REGULAR CLASS 3 VERBS #####
 
+# tests conjugation of majority verbs (one's WITHOUT an imperative stem special case)
+
+# regular -it verbs
+def test_class3_it():
+    a = v.Class3_itet("skočit", "it")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["skočím", "skočíš", "skočí", "skočíme", "skočíte", "skočí"]
+    expected_past = ["skočil/a jsem", "skočil/a jsi/jseš", "skočil/a/o", "skočili/y jsme", "skočili/y jste", "skočili/y/a"]
+    expected_future = ["budu skočit", "budeš skočit", "bude skočit", "budeme skočit", "budete skočit", "budou skočit"]
+    expected_imperative = ["", "skoč", "", "skočme", "skočte", ""]
+    expected_conditional = ["skočil/a bych", "skočil/a bys", "skočil/a/o by", "skočili/y bychom", "skočili/y byste", "skočili/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "skočit"
+    assert a.ending == "it"
+    assert a.stem == "skoč"
+    assert a.present_stem == "skoč"
+    assert a.past_stem == "skočil"
+    assert a.imperative_stem == "skoč"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+# tests regular -et verbs (hard e, NOT ě!)
+def test_class3_et_hard_e():
+    a = v.Class3_itet("mručet", "et")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["mručím", "mručíš", "mručí", "mručíme", "mručíte", "mručí"]
+    expected_past = ["mručel/a jsem", "mručel/a jsi/jseš", "mručel/a/o", "mručeli/y jsme", "mručeli/y jste", "mručeli/y/a"]
+    expected_future = ["budu mručet", "budeš mručet", "bude mručet", "budeme mručet", "budete mručet", "budou mručet"]
+    expected_imperative = ["", "mruč", "", "mručme", "mručte", ""]
+    expected_conditional = ["mručel/a bych", "mručel/a bys", "mručel/a/o by", "mručeli/y bychom", "mručeli/y byste", "mručeli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "mručet"
+    assert a.ending == "et"
+    assert a.stem == "mruč"
+    assert a.present_stem == "mruč"
+    assert a.past_stem == "mručel"
+    assert a.imperative_stem == "mruč"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+# test regular -ět verbs (soft e)
+def test_class3_et_soft_e():
+    a = v.Class3_itet("dunět", "ět")
+
+    # expected conjugations
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = []
+    expect_present= ["duním", "duníš", "duní", "duníme", "duníte", "duní"]
+    expected_past = ["duněl/a jsem", "duněl/a jsi/jseš", "duněl/a/o", "duněli/y jsme", "duněli/y jste", "duněli/y/a"]
+    expected_future = ["budu dunět", "budeš dunět", "bude dunět", "budeme dunět", "budete dunět", "budou dunět"]
+    expected_imperative = ["", "duň", "", "duňme", "duňte", ""]
+    expected_conditional = ["duněl/a bych", "duněl/a bys", "duněl/a/o by", "duněli/y bychom", "duněli/y byste", "duněli/y/a by"]
+
+    # from __init__
+    assert a.infinitive == "dunět"
+    assert a.ending == "ět"
+    assert a.stem == "duň"
+    assert a.present_stem == "dun"
+    assert a.past_stem == "duněl"
+    assert a.imperative_stem == "duň"
+    assert a._is_negative == False
+    assert a._is_perfective == False
+    assert v.get_motion(a._is_motion) == False
+    assert v.get_motion_prefix(a._is_motion) == ""
+
+    # indices (0-4): present, past, future, imperative, conditional
+    expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
+    a.conjugate()
+    for tense in range(0, len(v.Tense)):
+        for person in range(0, len(v.Person)):
+            assert expected_conjugations[tense][person] == a.get_conjugation_at(tense, person)
+    assert a.get_table() == expected_conjugations # just double checking!'
+
+
+# test imperative stem special cases
+def test_class3_imperative_stem_long_et():
+    # verbs to test:
+    # chvět, vyvíjet, vyrábět, umět, přenášet, ztrácet, dovádět, pouštět, zkoušet, prospět, tvářet, slzet
+    assert v.Class3_itet("chvět", "ět").imperative_stem == "chvěj"
+    assert v.Class3_itet("vyvíjet", "et").imperative_stem == "vyvíjej"
+    assert v.Class3_itet("vyrábět", "ět").imperative_stem == "vyráběj"
+    assert v.Class3_itet("umět", "ět").imperative_stem == "uměj"
+    assert v.Class3_itet("přenášet", "et").imperative_stem == "přenášej"
+    assert v.Class3_itet("ztrácet", "et").imperative_stem == "ztrácej"
+    assert v.Class3_itet("dovádět", "ět").imperative_stem == "dováděj"
+    assert v.Class3_itet("pouštět", "ět").imperative_stem == "pouštěj"
+    assert v.Class3_itet("zkoušet", "et").imperative_stem == "zkoušej"
+    assert v.Class3_itet("prospět", "ět").imperative_stem == "prospěj"
+    assert v.Class3_itet("tvářet", "et").imperative_stem == "tvářej"
+    assert v.Class3_itet("slzet", "et").imperative_stem == "slzej"
+
+def test_class3_imperative_stem_long_it():
+    # verbs to test
+    # chýlit, pálit, blížit, bouřit, bránit, cítit, hájit, kamarádit, podřídit, půlit,
+    # rdousit, sloučit, tvářit, úžit, léčit, sílit
+    assert v.Class3_itet("chýlit", "it").imperative_stem == "chyl"
+    assert v.Class3_itet("pálit", "it").imperative_stem == "pal"
+    assert v.Class3_itet("blížit", "it").imperative_stem == "bliž"
+    assert v.Class3_itet("bouřit", "it").imperative_stem == "buř"
+    assert v.Class3_itet("bránit", "it").imperative_stem == "braň"
+    assert v.Class3_itet("cítit", "it").imperative_stem == "ciť"
+    assert v.Class3_itet("hájit", "it").imperative_stem == "haj"
+    assert v.Class3_itet("kamarádit", "it").imperative_stem == "kamaraď"
+    assert v.Class3_itet("podřídit", "it").imperative_stem == "podřiď"
+    assert v.Class3_itet("prýštit", "it").imperative_stem == "prýšti"
+    assert v.Class3_itet("půlit", "it").imperative_stem == "pol"
+    assert v.Class3_itet("rdousit", "it").imperative_stem == "rdus"
+    assert v.Class3_itet("sloučit", "it").imperative_stem == "sluč"
+    assert v.Class3_itet("tvářit", "it").imperative_stem == "tvař"
+    assert v.Class3_itet("úžit", "it").imperative_stem == "už"
+    assert v.Class3_itet("léčit", "it").imperative_stem == "leč"
+    assert v.Class3_itet("sílit", "it").imperative_stem == "sil"
+
+def test_class3_imperative_stem_cluster():
+    # verbs to test
+    # shromáždit, vřeštět, ošetřit, brázdit, ověnčit, bruslit, kreslit, běsnit, hmoždit, čpět, 
+    # patřit, zhoršit, zlepšit, rozluštit, vrstvit, rozmístit, různit, sídlit, svraštit, šustit, tříštit, ústit, prýštit
+
+    assert v.Class3_itet("shromáždit", "it").imperative_stem == "shromáždi"
+    assert v.Class3_itet("vřeštět", "ět").imperative_stem == "vřešti"
+    assert v.Class3_itet("ošetřit", "it").imperative_stem == "ošetři"
+    assert v.Class3_itet("brázdit", "it").imperative_stem == "brázdi"
+    assert v.Class3_itet("ověnčit", "it").imperative_stem == "ověnči"
+    assert v.Class3_itet("bruslit", "it").imperative_stem == "brusli"
+    assert v.Class3_itet("kreslit", "it").imperative_stem == "kresli"
+    assert v.Class3_itet("běsnit", "it").imperative_stem == "běsni"
+    assert v.Class3_itet("hmoždit", "it").imperative_stem == "hmoždi"
+    assert v.Class3_itet("čpět", "ět").imperative_stem == "čpi"
+    assert v.Class3_itet("patřit", "it").imperative_stem == "patři"
+    assert v.Class3_itet("zhoršit", "it").imperative_stem == "zhorši"
+    assert v.Class3_itet("zlepšit", "it").imperative_stem == "zlepši"
+    assert v.Class3_itet("rozluštit", "it").imperative_stem == "rozlušti"
+    assert v.Class3_itet("vrstvit", "it").imperative_stem == "vrstvi"
+    assert v.Class3_itet("rozmístit", "it").imperative_stem == "rozmísti"
+    assert v.Class3_itet("různit", "it").imperative_stem == "různi"
+    assert v.Class3_itet("sídlit", "it").imperative_stem == "sídli"
+    assert v.Class3_itet("svraštit", "it").imperative_stem == "svrašti"
+    assert v.Class3_itet("šustit", "it").imperative_stem == "šusti"
+    assert v.Class3_itet("třístit", "it").imperative_stem == "třísti"
+    assert v.Class3_itet("ústit", "it").imperative_stem == "ústi"
+    assert v.Class3_itet("prýštit", "it").imperative_stem == "prýšti"
+
+def test_class3_imperative_stem():
+    # verbs to test
+    # pršet, trpět, drtit, robit, chytit, zkamenět, oslnit, naplnit, ověřit, mlčet, půjčit, tvrdit, opustit
+    assert v.Class3_itet("pršet", "et").imperative_stem == "prš"
+    assert v.Class3_itet("trpět", "ět").imperative_stem == "trp"
+    assert v.Class3_itet("drtit", "it").imperative_stem == "drť"
+    assert v.Class3_itet("robit", "it").imperative_stem == "rob"
+    assert v.Class3_itet("chytit", "it").imperative_stem == "chyť"
+    assert v.Class3_itet("zkamenět", "ět").imperative_stem == "zkameň"
+    assert v.Class3_itet("oslnit", "it").imperative_stem == "oslň"
+    assert v.Class3_itet("naplnit", "it").imperative_stem == "naplň"
+    assert v.Class3_itet("ověřit", "it").imperative_stem == "ověř"
+    assert v.Class3_itet("mlčet", "et").imperative_stem == "mlč"
+    assert v.Class3_itet("půjčit", "it").imperative_stem == "půjč"
+    assert v.Class3_itet("tvrdit", "it").imperative_stem == "tvrď"
+    assert v.Class3_itet("opustit", "it").imperative_stem == "opusť"
+
 ###### REGULAR CLASS 4 VERBS #####
 
 # tests conjugation of -nout subclass
