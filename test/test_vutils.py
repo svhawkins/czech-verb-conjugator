@@ -3,16 +3,6 @@
 import pytest
 import src.verb_utils as vutils
 
-# dummy test
-def test_hello():
-    print("hello world! :)")
-    assert 493 == 493
-
-# dummy test
-def test_goodbye():
-    print("goodbye world! :(")
-    assert 493 == 493
-
 # tests italics() with the empty string 
 def test_italics():
     test_str=""
@@ -27,7 +17,7 @@ def test_get_short_vowel():
              "s", "š", "t", "ť", "u", "ú", "ů", "ou", "v", "w", "x", "y", "ý", "z", "ž"]
     expected = ["a", "a", "b", "c", "č", "d", "ď", "e", "ě", "e", "f", "g", "h", "ch",
              "i", "i", "j", "k", "l", "m", "n", "ň", "o", "ó", "p", "q", "r", "ř",
-             "s", "š", "t", "ť", "u", "ú", "o", "u", "v", "w", "x", "y", "y", "z", "ž"]
+             "s", "š", "t", "ť", "u", "u", "o", "u", "v", "w", "x", "y", "y", "z", "ž"]
     
     for i in range(len(alphabet)):
         assert vutils.get_short_vowel(alphabet[i]) == expected[i]
@@ -120,7 +110,7 @@ def test_get_vowel():
     assert vutils.get_vowel(consonants) == expected
 
      # all vowels
-    expected = "aeiouyáéíóúůýouěií" # repeat since using regex string as source
+    expected = "ouáéíóúůýaeiouyěií" # repeat since using regex string as source
     vowels = vutils.vowel
     assert vutils.get_vowel(vowels) == expected
 
@@ -132,7 +122,7 @@ def test_get_vowel():
 # vowels return empty
 # consonant clusters should be returned properly
 # empty string is obviously empty
-def test_get_consoant():
+def test_get_consonant():
     # test strings will also container other symbols since using regex strings
     # but they are OBVIOUSLY not consonants
 
@@ -146,8 +136,8 @@ def test_get_consoant():
     assert vutils.get_consonant(vowels) == expected
 
      # all vowels
-    expected = "dghknrstbmpvfqwxcčďjlňřšťzžchstštctčt" # repeat since using regex string as source
-    consonants = vutils.consonant
+    expected = "chstštctčtdghknstrbmpvfqwxcčďjňřšťzžl" # repeat since using regex string as source
+    consonants = vutils.consonant_or_digraph
     assert vutils.get_consonant(consonants) == expected
 
     # vowels and consonants
@@ -185,8 +175,6 @@ def test_contains_vowel():
 
 # tests lengthen() function
 # basically test of get_long_vowel() but with words instead of letters
-# CAVEAT: does not work with consonant-final stems
-# CAVEAT: does not work with multiple vowels within stem
 def test_lengthen():
     # nothing
     stem = ""
@@ -205,8 +193,6 @@ def test_lengthen():
 
 # tests shorten() function
 # basically test of get_short_vowel() but with words instead of letters
-# CAVEAT: does not work with consonant-final stems
-# CAVEAT: does not work with multiple vowels within stem
 def test_shorten():
     # nothing
     stem = ""
@@ -218,15 +204,13 @@ def test_shorten():
              "s", "š", "t", "ť", "u", "ú", "ů", "ou", "v", "w", "x", "y", "ý", "z", "ž"]
     expected = ["a", "a", "b", "c", "č", "d", "ď", "e", "ě", "e", "f", "g", "h", "ch",
              "i", "i", "j", "k", "l", "m", "n", "ň", "o", "ó", "p", "q", "r", "ř",
-             "s", "š", "t", "ť", "u", "ú", "o", "u", "v", "w", "x", "y", "y", "z", "ž"]
+             "s", "š", "t", "ť", "u", "u", "o", "u", "v", "w", "x", "y", "y", "z", "ž"]
     
     for i in range(len(alphabet)):
         assert vutils.shorten( "n" + alphabet[i]) == "n" + expected[i]
 
 # tests soften() function
 # basically test of get_soft_consonant() but with words instead of letters
-# CAVEAT: does not work with vowel-final stems
-# CAVEAT: does not work with multiple consonants within stem
 def test_soften():
     # nothing
     stem = ""
@@ -245,8 +229,6 @@ def test_soften():
 
 # tests harden() function
 # basically test of get_hard_consonant() but with words instead of letters
-# CAVEAT: does not work with vowel-final stems
-# CAVEAT: does not work with multiple consonants within stem
 def test_harden():
     # nothing
     stem = ""
@@ -270,12 +252,37 @@ def test_harden():
 def test_fix_spelling():
 
     expected = [["ce", "ci", "cí"], ["če", "či", "čí"], ["dě", "di", "dí"], ["je", "ji", "jí"],
-                ["le", "li", "lí"], ["ně", "ni", "ní"], ["ře", "ři", "ří"], ["še", "ši", "ší"],
-                ["tě", "ti", "tí"], ["ze", "zi", "zí"], ["že", "ži", "ží"]]  
+                ["ně", "ni", "ní"], ["ře", "ři", "ří"], ["še", "ši", "ší"], ["tě", "ti", "tí"], 
+                ["ze", "zi", "zí"], ["že", "ži", "ží"], ["le", "li", "lí"]]  
     for i in range(len(vutils.soft_consonant[1:-1])): # no [] in string
         for j in range(len(vutils.soft_vowel[1:-1])): # no [] in string
             consonant = vutils.soft_consonant[1 + i] # skip [
             vowel = vutils.soft_vowel[1 + j] # skip [
             assert vutils.fix_spelling(consonant + vowel) == expected[i][j]
+
+
+# tests syllables
+def test_syllables():
+
+    s = vutils.Syllables("pokrm")
+    assert s.syllable_list == [('po', False), ('krm', True)]
+    assert s.inspect_syllable(0) == 'po'
+    assert s.inspect_syllable(1) == 'krm'
+    assert s.is_syllabic(0) == False
+    assert s.is_syllabic(1) == True
+
+    s = vutils.Syllables("trp")
+    assert s.syllable_list == [('trp', True)]
+    assert s.inspect_syllable(0) == 'trp'
+    assert s.is_syllabic(0) == True
+
+    s = vutils.Syllables("shromazdit")
+    assert s.syllable_list == [('shro', False), ('ma', False), ('zdit', False)]
+    assert s.inspect_syllable(0) == 'shro'
+    assert s.inspect_syllable(1) == 'ma'
+    assert s.inspect_syllable(2) == 'zdit'
+    assert s.is_syllabic(0) == False
+    assert s.is_syllabic(1) == False
+    assert s.is_syllabic(2) == False
 
 

@@ -1,7 +1,7 @@
 # functions, classes, and other utilities for the main conjugator
 import re
-import verbs as v
-import verb_utils as vutils
+import src.verbs as v
+import src.verb_utils as vutils
 
 # regex patterns
 
