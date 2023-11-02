@@ -2,12 +2,22 @@
 import re
 import src.verbs as v
 import src.verb_utils as vutils
+from enum import IntEnum
 
-# regex patterns
+# TO DO:
 
-# FIXME: redundant from vutils
-long_vowel = "[áéíýů]"
-consonant = "[bcčdďfghjklmnňpqrřsštťvwxzž]"
+# 1. add better doc strings, even if just the one-liner ones
+# DONE2. make the 'indexing constants' be an int-enum class
+# DONE3. make elif trees for simple assignments be done with maps instead (not sure about verb class disambiguations...)
+# DONE4. remove the regex strings (already defined in vutils)
+# 5. tests:
+#	DONE1. check that the irregular verbs get the right classes
+# 	2. check that regular verbs get the right classes
+#	3. check that ambiguous matches get the right classes
+#	4. add verb tests/attribute for a prefix portion
+#		(stems and such now be determined via the root) (the negation rule for the future still applies)
+#		(now just appending a prefix string to corresponding stem!)
+# 6. ADD TYPE HINTS
 
 # indexing constants
 RGX_INFINITIVE = 0
@@ -16,57 +26,80 @@ PRESENT_STEM = 2
 PAST_STEM = 3
 IMPERATIVE_STEM = 4
 
-# gets irregular verbs from .txt files by constructing 2 lists: a list for only the verbs and a list (of lists) for that verb's content
-def get_irregular_verbs():
-	# TODO: can be refactored wih list comprehension
+class IrregularIdx(IntEnum):
+	RGX_INFINITIVE = 0
+	CONJUGATION_CLASS = 1
+	PRESENT_STEM = 2
+	PAST_STEM = 3
+	IMPERATIVE_STEM = 4
+	#PASSIVE_STEM = 5
+	#TRANSGRESSIVE_STEM = 6
+
+# dictionaries
+int_to_verb_class= { 1 : v.Class1, 2 : v.Class2, 3: v.Class3, 4: v.Class4 }
+
+def get_irregular_verbs() -> list:
+	"""
+	Retrieve the irregular verb constructions from the file and store them as a list of tuples.
+	
+	Each line becomes its own tuple, with each element within each tuple being the following:
+	0 (IrregularIdx.RGX_INFINITIVE): The irregular verb's infinitive
+	1 (IrregularIdx.CONJUGATION_CLASS): The irregular verb's conjugation class (determines which literal Verb class to construct).
+	2 (IrregularIdx.PRESENT_STEM): The irregular verb's present stem for present tense conjugations.
+	3 (IrregularIdx.PAST_STEM): The irregular verb's past participle stem for past tense and conditional mood conjugations.
+	4 (IrregularIdx.IMPERATIVE_STEM): The irregular verb's imperative stem for imperative mood conjugations.
+
+	Return:
+		list[tuple[str, int, str, str, str]]
+	"""
 	file = open("../data/irregular.txt", "r")
 	lines = file.readlines()
 	file.close()
 
-    # verbs = [int((line.split())[CONJUGATION_CLASS] for line in lines]
 	verbs = []
-	words = []
 	for line in lines:
-		words = line.split()
-		words[CONJUGATION_CLASS] = int(words[CONJUGATION_CLASS])
-		verbs.append(words)
+		verb = line.split()
+		verb[IrregularIdx.CONJUGATION_CLASS] = int(verb[IrregularIdx.CONJUGATION_CLASS]) # from str to int
+		verb = tuple(verb)
+		verbs.append(verb)
 	return verbs
 
-def linear_search(word, verbs):
-	# TODO: can be refactored with list comprehension
-	matches = []
-	for verb in verbs:
-		x = re.findall("(" + verb[RGX_INFINITIVE] + ")" + "$", word)
-		if x != []:
-			matches.append(verb)
+def find_verb_matches(word : str, verbs : list) -> list:
+	"""
+	Return all verb-tuples that end with <word>.
+	
+		Construct a list of matches by comparing <word> with the infinitive in <verbs> and if they
+		end identically. If so, it is added to the list.
+
+		Parameters:
+			word: str --> string to compare the irregular verbs to.
+			verbs: list[tuple[str, int, str, str, str]] --> list holding the irregular verb information.
+		Return:
+			list[tuple[str, int, str, str, str]] --> list of irregular verb-tuples that match the word-ending regex pattern.
+	"""
+	matches = [verb for verb in verbs if re.findall("(" + verb[RGX_INFINITIVE] + ")" + "$", word) != []]
 	return matches
 
-# constructs the proper base clas verb from corresponding integer
-def verb_class(word, class_num):
-	if class_num == 1:
-		verb = v.Class1(word)
-	elif class_num == 2:
-		verb = v.Class2(word)
-	elif class_num == 3:
-		verb = v.Class3(word)
-	elif class_num == 4:
-		verb = v.Class4(word)
-	return verb
+def verb_class(word : str, class_num: int) -> v.Verb:
+	"""Return corresponding base class Verb (Class 1-4 ONLY) from provided <class_num>"""
+	return vutils.get_val_from_dict(int_to_verb_class, class_num)(word)
 
-# constructs the matching irregular verb by manual setting
-def construct_verb(word, match):
-	remainder = word[:-len(match[RGX_INFINITIVE])]
+def construct_verb(word : str, match : tuple) -> v.Verb:
+	"""Construct a Verb object manually by overwriting stem values from __init__()."""
+	remainder = word[:-len(match[IrregularIdx.RGX_INFINITIVE])]
 	verb = v.Verb()
-	verb = verb_class(word, match[CONJUGATION_CLASS])
-	verb.set_present_stem(remainder + match[PRESENT_STEM])
-	verb.set_past_stem(remainder + match[PAST_STEM])
-	verb.set_imperative_stem(remainder + match[IMPERATIVE_STEM])
+	verb = verb_class(word, match[IrregularIdx.CONJUGATION_CLASS])
+	verb.present_stem = remainder + match[IrregularIdx.PRESENT_STEM]
+	verb.past_stem = remainder + match[IrregularIdx.PAST_STEM]
+	verb.imperative_stem = remainder + match[IrregularIdx.IMPERATIVE_STEM]
 	return verb
 
 # removes ambiguities in irregular matches and constructs from the correct match
-def check_match(match, word, root):
+# TODO: this can be def be refactored a bit, just don't know how.
+# TODO: make tests to verify that this works
+def check_match(match : list , word : str, root : str) -> v.Verb:
 	verb = v.Verb()
-	m = match[0][RGX_INFINITIVE]
+	m = match[0][IrregularIdx.RGX_INFINITIVE]
 	if m == "být" and word == "být" or word == "nebýt":
 		verb = v.Byt(word)
 	elif m == "dít" and word == "dít":
@@ -102,7 +135,9 @@ def check_match(match, word, root):
 
 
 # determines verb class and sets the right forms for slightly irregular cases
-def determine_verb(word, root):
+# TODO: refactor, do better naming
+# TODO: add tests to verify that this works
+def determine_verb(word : str, root : str) -> v.Verb:
 	verb  = v.Verb()
 	x = []
 
@@ -120,7 +155,7 @@ def determine_verb(word, root):
 			verb.set_past_stem(stem + "el")
 			verb.set_imperative_stem(stem + "i")
 		# cluster rule
-		elif re.search(consonant + "{2,}ít$", root):
+		elif re.search(vutils.consonant + "{2,}ít$", root):
 			# class3 general constructor. manually set stems. past thematic vowel is e if stem ends in l, if ends in v/d/n/b: ě, +i to stem in imperative, present stem is stem
 			verb = v.Class3(word, x[0])
 			stem = word[:-2]
@@ -146,11 +181,11 @@ def determine_verb(word, root):
 		verb = v.Class3_itet(word, x[0])
 	elif x := re.findall("nout$", root):
 		verb = v.Class4_nout(word, x[0])
-	elif bool(x := re.findall(long_vowel + "ct$", root)) or bool(x := re.findall("ouct$", root)):
+	elif bool(x := re.findall(vutils.long_vowel + "ct$", root)) or bool(x := re.findall("ouct$", root)):
 		verb = v.Class4_ct(word, x[0][-2:])
-	elif x := re.findall(long_vowel + "st$", root):
+	elif x := re.findall(vutils.long_vowel + "st$", root):
 		verb = v.Class4_st(word, x[0][-2:])
-	elif x := re.findall(long_vowel + "zt$", root):
+	elif x := re.findall(vutils.long_vowel + "zt$", root):
 		verb = v.Class4_zt(word, x[0][-2:])
 	elif x := re.findall("out$", root):
 		# -out ending. class2 general. manually set stems: present uj, past ul, imperative uj
@@ -161,34 +196,37 @@ def determine_verb(word, root):
 		verb.set_past_stem(stem + "ul")
 		verb.set_imperative_stem(stem + "uj")
 	else:
+		# TODO: print out a different message!
 		print("none of the above")
 		verb = None
 	return verb
 
 # returns .txt as a single regex string to represent the prefixes a verb may begin with
+# TODO: verify/test that this works as intended
 def prefix_regex():
 	# TODO: can be refactored via list comprehension -> string
 	file = open("../data/prefix.txt", "r")
 	lines = file.readlines()
 	file.close()
 
-	# prefixes = "^(" + str(["(" + line[:-1] + ")|" for line in lines])[:-1] + ")"
-	prefixes = "^("
-	for line in lines:
-		prefixes += "(" + line[:-1] + ")|"
-	prefixes =  prefixes[:-1] + ")"
+	prefixes = "^(" + str(["(" + line[:-1] + ")|" for line in lines])[:-1] + ")"
+	# prefixes = "^("
+	# for line in lines:
+	# 	prefixes += "(" + line[:-1] + ")|"
+	# prefixes =  prefixes[:-1] + ")"
 	return prefixes
 
 
 # returns the non-empty element in a regex match list
 def get_prefix(matches):
-	ret = ""
+	prefix_match = ""
 	for match in matches:
 		if match:
-			ret = match
-	return ret
+			prefix_match = match
+	return prefix_match
 
 # returns the prefixes within the verb
+# TODO: better naming conventions
 def get_prefixes(verb):
 	# TODO: prefix regex can be done elsewhere, reading from file
 	prefixes = prefix_regex()

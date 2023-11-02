@@ -1,5 +1,5 @@
 # set up directory basename
-export BASE_DIR="/home/sandra/py/btai/czech"
+export BASE_DIR=
 
 # export subdirectories
 export PYTHON_PATH=$PYTHON_PATH:$BASE_DIR"/src"

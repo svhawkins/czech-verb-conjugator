@@ -67,8 +67,6 @@ pást		4		pas		pásl		pas
 plát		2		plaj		plál		plaj
 plavat		4		plav		plaval		plav
 plést		4		plet		pletl		pleť
-zvát		4		zv		zvál		zvi
-zvat		4		zv		zvál		zvi
 čít		4		čn		čal		čni
 pět		2		pěj		pěl		pěj
 příst		4		před		předl		přeď

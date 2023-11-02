@@ -65,6 +65,7 @@ class Verb:
 	_tense_to_auxiliary = [ _empty, _past_auxiliary, _future_auxiliary, _empty, _conditional_auxiliary]
 
 	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+		self.class_num = 0
 		# stems (public)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -206,6 +207,7 @@ class Class1(Verb):
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.class_num = 1
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
@@ -214,7 +216,7 @@ class Class1(Verb):
 		print("Class I verb, conjugates according to -at/-át paradigm")
 
 class Class1_at(Class1):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -238,6 +240,7 @@ class Class2(Verb):
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.class_num = 2
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
@@ -265,7 +268,7 @@ class Class2(Verb):
 
 
 class Class2_ityt(Class2):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		_thematic_vowel = "i" if ending.startswith("í") else "y"
 		self.infinitive = infinitive
@@ -284,7 +287,7 @@ class Class2_ityt(Class2):
 		print("Class II verb subclass, specific to -ít/-ýt verbs")
 
 class Class2_ovat(Class2):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -308,6 +311,7 @@ class Class3(Verb):
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.class_num = 3
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
@@ -403,14 +407,15 @@ class Class4(Verb):
 	_present_endings = ["u", "eš", "e", "eme", "ete", "ou"]
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.class_num = 4
 
 	def kind(self):
 		print("Class IV verb, conjugates according to -nout/-st/-ct/-zt paradigm")
 
 class Class4_nout(Class4):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -442,7 +447,7 @@ class Class4_nout(Class4):
 
 
 class Class4_st(Class4):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -460,7 +465,7 @@ class Class4_st(Class4):
 		print("Class IV verb subclass, specific for -st verbs")
 
 class Class4_zt(Class4):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self._infinitive = infinitive
 		self.ending = ending
@@ -478,7 +483,7 @@ class Class4_zt(Class4):
 		print("Class IV verb subclass, specific to -zt verbs")
 
 class Class4_ct(Class4):
-	def __init__(self, infinitive, ending, is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
