@@ -1,4 +1,10 @@
-# functions, classes, and other utilities for the main conjugator
+""""
+Conjugation Utilites
+
+Provides functions to ease in finding a verb's
+proper Verb class.
+"""
+
 import re
 import src.verbs as v
 import src.verb_utils as vutils
@@ -6,7 +12,7 @@ from enum import IntEnum
 
 # TO DO:
 
-# 1. add better doc strings, even if just the one-liner ones
+# DONE1. add better doc strings, even if just the one-liner ones
 # DONE2. make the 'indexing constants' be an int-enum class
 # DONE3. make elif trees for simple assignments be done with maps instead (not sure about verb class disambiguations...)
 # DONE4. remove the regex strings (already defined in vutils)
@@ -18,13 +24,6 @@ from enum import IntEnum
 #		(stems and such now be determined via the root) (the negation rule for the future still applies)
 #		(now just appending a prefix string to corresponding stem!)
 # 6. ADD TYPE HINTS
-
-# indexing constants
-RGX_INFINITIVE = 0
-CONJUGATION_CLASS = 1
-PRESENT_STEM = 2
-PAST_STEM = 3
-IMPERATIVE_STEM = 4
 
 class IrregularIdx(IntEnum):
 	RGX_INFINITIVE = 0
@@ -77,7 +76,7 @@ def find_verb_matches(word : str, verbs : list) -> list:
 		Return:
 			list[tuple[str, int, str, str, str]] --> list of irregular verb-tuples that match the word-ending regex pattern.
 	"""
-	matches = [verb for verb in verbs if re.findall("(" + verb[RGX_INFINITIVE] + ")" + "$", word) != []]
+	matches = [verb for verb in verbs if re.findall("(" + verb[IrregularIdx.RGX_INFINITIVE] + ")" + "$", word) != []]
 	return matches
 
 def verb_class(word : str, class_num: int) -> v.Verb:
@@ -97,7 +96,8 @@ def construct_verb(word : str, match : tuple) -> v.Verb:
 # removes ambiguities in irregular matches and constructs from the correct match
 # TODO: this can be def be refactored a bit, just don't know how.
 # TODO: make tests to verify that this works
-def check_match(match : list , word : str, root : str) -> v.Verb:
+def disambiguate_verb(match : list , word : str, root : str) -> v.Verb:
+	"""Disambiguates between an irregular verb match and a regular verb, constructing the irregular verb."""
 	verb = v.Verb()
 	m = match[0][IrregularIdx.RGX_INFINITIVE]
 	if m == "být" and word == "být" or word == "nebýt":
@@ -133,11 +133,15 @@ def check_match(match : list , word : str, root : str) -> v.Verb:
 		verb = construct_verb(word, match[0])
 	return verb
 
-
-# determines verb class and sets the right forms for slightly irregular cases
 # TODO: refactor, do better naming
 # TODO: add tests to verify that this works
-def determine_verb(word : str, root : str) -> v.Verb:
+def determine_verb_class(word : str, root : str) -> v.Verb:
+	"""Construct the proper Verb class based on the ending of <word> or <word> as <root>.
+	
+	Examine the ending found in either <word> or <root>. Slightly irregular
+	cases (adhering to a class but having an atypical albeit regular ending)
+	have their stems manually added.
+	"""
 	verb  = v.Verb()
 	x = []
 
@@ -202,42 +206,57 @@ def determine_verb(word : str, root : str) -> v.Verb:
 	return verb
 
 # returns .txt as a single regex string to represent the prefixes a verb may begin with
-# TODO: verify/test that this works as intended
-def prefix_regex():
-	# TODO: can be refactored via list comprehension -> string
+def get_prefixes() -> str:
+	"""Retrieve the prefixes from the file as a single regex expression."""
 	file = open("../data/prefix.txt", "r")
 	lines = file.readlines()
 	file.close()
 
-	prefixes = "^(" + str(["(" + line[:-1] + ")|" for line in lines])[:-1] + ")"
-	# prefixes = "^("
-	# for line in lines:
-	# 	prefixes += "(" + line[:-1] + ")|"
-	# prefixes =  prefixes[:-1] + ")"
+	# append each line (excluding the new line) within an OR capture
+	prefixes = "^("
+	for line in lines:
+		prefixes += "(" + line[:-1] + ")|"
+	prefixes =  prefixes[:-1] + ")" # remove last/redundant "|"
 	return prefixes
 
 
-# returns the non-empty element in a regex match list
-def get_prefix(matches):
+def get_last_prefix(matches : tuple):
+	"""Return the last non-empty element in tuple <matches>."""
 	prefix_match = ""
 	for match in matches:
 		if match:
-			prefix_match = match
+			prefix_match = match # the previous match is overwritten.
 	return prefix_match
 
-# returns the prefixes within the verb
-# TODO: better naming conventions
-def get_prefixes(verb):
-	# TODO: prefix regex can be done elsewhere, reading from file
-	prefixes = prefix_regex()
-	word = verb
-	not_root = ""
+
+def get_prefix(word : str, prefixes_expr: str) -> tuple:
+	"""
+	Extract the prefixes from provided <word>.
+	
+	Continuously appends consecutive prefixes to string <prefixes> in order to obtain
+	a string containing all of the contained prefixes within <word> that
+	adhere to the <prefixes> regex pattern. As a result, as <prefixes> expands,
+	the remaining length of <word> decreases, eventually reducing it to its
+	unprefixed root.
+
+	Parameters:
+		word : str --> word to extract the prefixes from.
+		prefixes_expr : str -->  regex expression containing all valid verbal prefixes.
+	Return:
+		tuple[str, str] --> [0]: The resulting string from appending all of the consecutively found prefixes in <word>.
+							[1]: The resulting string from removing the found prefixes from <word> within <word> (the root).
+	"""
+	prefixes = ""
 	prefix = ""
+	root = ""
 	while(1):
+		# keep extracting last prefix matched until all have been found.
 		word = word[len(prefix):]
-		x = re.findall(prefixes, word)
-		if not x:
+		found_prefixes = re.findall(prefixes_expr, word)
+		if found_prefixes == []:
 			break
-		prefix = get_prefix(x[0])
-		not_root += prefix
-	return not_root
+		found_prefixes = found_prefixes[0] # list is a singleton
+		prefix = get_last_prefix(found_prefixes)
+		prefixes += prefix
+	root = word
+	return (prefixes, root)

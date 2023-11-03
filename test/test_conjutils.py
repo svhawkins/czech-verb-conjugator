@@ -3,12 +3,6 @@
 import pytest
 import src.conjugator_utils as conjutils
 
-
-# placeholder test
-def test_success():
-    assert 493 == 493
-
-
 # tests that get_irregular_verbs functions properly by examining contents of the 1st, 10th, 30th, and 75th lines. 
 def test_get_irregular_verbs():
     # infinitive, class, stem, past stem, imperative stem, passive stem?, transgressive stem?
@@ -66,3 +60,41 @@ def test_construct_verb():
     assert verb.present_stem == "v"
     assert verb.past_stem == "věděl"
     assert verb.imperative_stem == "věz"
+
+# tests that prefixes are retrieved correctly
+def test_get_prefixes():
+    expected = "^((beze?)|(d[oů])|(nade?)|(n[aá])|(ne)|"
+    expected += "(ode?)|(ob?e?)|(pode?)|(přede?)|(p[oů])|(pře)|"
+    expected += "(př[ií])|(pr[oů])|(roze?)|(spolu)|(sou)|(se?)|([uú])|"
+    expected += "(v[yý])|(vze?)|(ve?)|(z[aá])|(zne)|(znovu)|(ze?))"
+    prefixes = conjutils.get_prefixes()
+    assert expected == prefixes
+
+# tests that prefixes are able to be extracted from provided words
+def test_get_prefix():
+    prefixes = conjutils.get_prefixes()
+
+    # no prefixes
+    word = "ledne"
+    (not_root, root) = conjutils.get_prefix(word, prefixes)
+    assert not_root == ""
+    assert root == "ledne"
+
+    # all prefixes
+    word = "nenenenavydopo"
+    (not_root, root) = conjutils.get_prefix(word, prefixes)
+    assert not_root == "nenenenavydopo"
+    assert root == ""
+
+    # some prefixes
+    word = "nenenenavydopoledne"
+    (not_root, root) = conjutils.get_prefix(word, prefixes)
+    assert not_root == "nenenenavydopo"
+    assert root == "ledne"
+
+    # prefixes that are seperate are part of the root.
+    word = "nedalekohledpo"
+    (not_root, root) = conjutils.get_prefix(word, prefixes)
+    assert not_root == "ne"
+    assert root == "dalekohledpo"
+ 

@@ -1,20 +1,27 @@
-import verb_utils as vutils
-import conjugator_utils as conjutils
-import verbs as v
+# TODO: imports being effing annoying.
+import src.conjugator_utils as conjutils
+import src.verbs as v
 
 # TODO: actually make this a 'main' function
 ############## MAIN PROGRAM ####################
 
-# TODO: make this a loop to continue conjugating verbs
 irregular_verbs = conjutils.get_irregular_verbs()
-word = input("please enter a verb infinitive: ")
-verb_match = conjutils.linear_search(word, irregular_verbs)
-not_root = conjutils.get_prefixes(word)
-root = word[len(not_root):]
-verb = None
-if verb_match != []:
-	verb = conjutils.check_match(verb_match, word, root)
-if not verb:
-	verb = conjutils.determine_verb(word, root)
-if verb:
-	verb.conjugate()
+prefixes = conjutils.get_prefixes()
+
+# TODO: add breaking condition!
+while(1):
+
+	word = input("please enter a verb infinitive: ")
+	if word == "q":
+		break
+
+	matches = conjutils.find_verb_matches(word, irregular_verbs)
+	(not_root, root) = conjutils.get_prefix(word)
+
+	verb = None
+	if matches != []:
+		verb = conjutils.disambiguate_verb(matches, word, root)
+	if not verb:
+		verb = conjutils.determine_verb_class(word, root)
+	if verb:
+		verb.conjugate()

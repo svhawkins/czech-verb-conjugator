@@ -1,16 +1,33 @@
-# module containing the verb classes to conjugate a czech verb
-# the base class is Verb responsible for majority of the conjugations
-# the derived classes do the present tense as well as set the necessary stems for the conjugations
-# 5 derived classes: class1, class2, class3, class4, and být (entirely irregular)
-# each of these derived classes have subclasses for differing (though nonetheless the same endings):
-# class1 has 1 subclass, class2 with 2, class3 with 1, and class4 with 4
+""""
+Verbs
 
-# all verbs 2 strings during init: infinitive and ending
-# optional flags can also be passed in: is_perfective (bool) , is_motion (tuple)
-# these flags modify endings in some conjugations
+Module containing all of the verb classes and subclasses needed
+to conjugate a Czech verb. 
+
+Consists of 5 main classes, all of which are derived from the Verb base class.
+The Verb class does most of the work in the conjugations.
+The derived classes alter the present endings and stems.
+A Verb is constructed from an infinitive, ending, perfective indicator, and an 'is_motion' indicator
+and that indicator's accompanying prefix (these indicators vary how a verb is conjugated in the present
+and fututre tense, regardless of class).
+
+The 5 main classes are as follows:
+
+0. Byt : for the irregular verb Být
+1. Class1 : for Class1 Verbs
+2. Class2 : for Class2 Verbs
+3. Class3 : for Class3 Verbs
+4. Class4 : for Class4 Verbs
+
+Classes 1-4 also each have their own subclasses to house
+ending-specific stem constructions/conjugations.
+Class1 has 1 subclass (Class1_at).
+Class2 has 2 subclasses (Class2_ityt, Class2_ovat).
+Class3 has 1 subclass (Class3_itet).
+Class4 has 4 subclasses (Class4_nout, Class4_st, Class4_zt, Class4_ct)
+"""
 
 import src.verb_utils as vutils
-#import verb_utils as vutils
 import re
 from enum import IntEnum
 
@@ -45,6 +62,44 @@ get_motion_prefix = lambda motion_tuple: (motion_tuple[1])
 
 
 class Verb:
+	"""
+	Base class to store a verb's conjugation.
+
+	This base class houses the majority of a verb's necessary conjugation(s),
+	holding the endings needed for moods and tenses other than the present indicative.
+
+	Class members:
+		_empty : tuple --> empty/default endings
+		_participle_endings : tuple --> participle endings for conditional mood and past tense
+		_present_endings : tuple --> default present tense endings
+		_imperative_endings : tuple ---> imperative endings for imperative mood
+
+		_past_auxiliary : tuple --> auxiliary verb used in the past tense
+		_future_auxiliary : tuple --> auxiliary verb used in the future tense for imperfective verbs
+		_conditional_auxiliary : tuple --> auxiliary verb used in the conditional/subjunctive moods
+
+		_tense_to_ending : list --> list that maps tense IntEnum to endings tuple
+		_tense_to_auxiliary : list --> list that maps tense IntEnum to auxiliary tuple
+
+	Attributes:
+		class_num : int --> Integer indicator of verb class (0, 1, 2, 3, or 4)
+		infinitive : str --> a verb's infinitive
+		ending : str --> a verb's ending
+		stem : str --> a verb's stem (infinitive sans the ending)
+		present_stem : str --> a verb's present tense stem
+		past_stem : str --> a verb's past tense stem
+		imperative_stem : str --> a verb's imperative mood stem
+	
+	Methods:
+		conjugate(self, tense_idx : int = len(Tense), person_idx : int = len(Person))
+			conjugate a verb
+		get_conjugation_at(self, tense_idx : int, person_idx : int) -> str
+			get specified conjugation
+		clear_table(self)
+			clear conjugation table
+		get_table(self)
+			get conjugation table
+	"""
 	# static/protected class members --> constant for ALL verbs pretty much unless aspect stuff appears
 
 	# past participle endings: 1st singular, 2nd singular, 3rd singular, 1st plural, 2nd plural, 3rd plural
@@ -57,14 +112,23 @@ class Verb:
 	_past_auxiliary = ("jsem", "jsi/jseš", "", "jsme", "jste", "")
 	_future_auxiliary = ("budu", "budeš", "bude", "budeme", "budete", "budou")
 	_conditional_auxiliary = ("bych", "bys", "by", "bychom", "byste", "by")
-	_auxiliaries = ( _past_auxiliary, _future_auxiliary, _conditional_auxiliary )
 
 	# tense to (auxiliary) ending mappings
 	# present,past,future,imperative,conditional
 	_tense_to_ending = [ _present_endings, _participle_endings, _empty, _imperative_endings, _participle_endings]
 	_tense_to_auxiliary = [ _empty, _past_auxiliary, _future_auxiliary, _empty, _conditional_auxiliary]
 
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""
+		Construct a Verb object.
+
+		Parameters:
+			infinitive (default "") : str --> infinitive of the verb
+			ending (default "") : str --> the verb's ending
+			is_perfective (default False) : bool --> indicator if a verb is perfective
+			is_motion (default (False, "") : tuple(bool, str)) --> indicator if verb is motion verb and accompanying prefix
+		"""
 		self.class_num = 0
 		# stems (public)
 		self.infinitive = infinitive
@@ -102,28 +166,8 @@ class Verb:
 		# conjugation table
 		self._conjugation_table = [["" for person in range(len(Person))] for tense in range(len(Tense))]
 
-	def kind(self):
-		'''displays verb conjugation class information'''
-		print("Verb")
-
-	def stems(self):
-		'''Displays stem information'''
-		print("infinitive: ", self.infinitive)
-		print("stem: ", self.stem)
-		print("present stem: ", self.present_stem)
-		print("past stem: ", self.past_stem)
-		print("imperative stem: ", self.imperative_stem)
-		#print("passive stem :", self.passive_stem)
-		#print("trangressive stem :" self.transgressive_stem)
-		#print("past trasngressive stem: " self.past_transgressive_stem)
-	
-	def describe(self):
-		'''Displays both kind and stem data'''
-		self.kind(self)
-		self.stems(self)
-
-	def _get_conjugation(self, tense, person):
-		'''returns a fully constructed conjugation for given tense and person indices'''
+	def _get_conjugation(self, tense : int, person : int) -> str:
+		"""Return a fully constructed conjugation for given tense and person indices."""
 		auxiliary = (self._tense_to_auxiliary[tense])[person]
 		ending = (self._tense_to_ending[tense])[person]
 		conjugation = ""
@@ -140,11 +184,15 @@ class Verb:
 					conjugation = "ne" + conjugation
 		return conjugation
 	
-	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
-		'''Conjugates a verb according provided tense and person
-		tense refers to any one of the integer constants defined in Tense
-		person refers to any one of the integer constants defined in Person
-		'''
+	def conjugate(self, tense_idx : int = len(Tense), person_idx : int = len(Person)):
+		"""
+		Conjugate a verb according provided tense and person indices.
+
+		Parameters:
+			tense : int --> any one of the integer constants defined in IntEnum Tense
+			person : int --> any one of the integer constants defined in IntEnum Person
+		"""
+
 		# set up ranges for given tense and person
 		tense_range = range(tense_idx, tense_idx + 1) if tense_idx != len(Tense) else range(len(Tense))
 		person_range = range(person_idx, person_idx + 1) if person_idx != len(Person) else range(len(Person))
@@ -153,27 +201,35 @@ class Verb:
 			for person in person_range:
 				self._conjugation_table[tense][person] = self._get_conjugation(tense, person)
 
-	def get_conjugation_at(self, tense_idx, person_idx):
-		'''Returns a conjugation at the specified indices'''
+	def get_conjugation_at(self, tense_idx : int, person_idx : int) -> str:
+		"""Return a conjugation at the specified indices."""
 		valid_cond = (tense_idx >= 0 and tense_idx < len(Tense)) and (person_idx >= 0 and person_idx < len(Person))
 		return self._conjugation_table[tense_idx][person_idx] if valid_cond else ""
 	
 	def clear_table(self):
-		'''Clears the conjugation table'''
+		"""Clear the conjugation table."""
 		for tense in range(len(Tense)):
 			for person in range(len(Person)):
 				self._conjugation_table[tense][person] = ""
 
 	def get_table(self):
-		'''Retrieves the conjugation table'''
+		"""Retrieve the conjugation table."""
 		return self._conjugation_table
 
-# completely irregular, so has own class for itself
-# this covers ONLY the verb být and its negated form nebýt
 class Byt(Verb):
+	""""
+	Class to store the stems, endings, and conjugations of the (wholly) irregular verb být.
+
+	Extends the Verb base class and overwrites the present endings.
+	Has the same methods and attributes as Verb.
+	"""
+
 	_present_endings = ("jsem", "jseš/jsi", "je", "jsme", "jste", "jsou")
 	_endings = (_present_endings, Verb._participle_endings, Verb._imperative_endings )
-	def __init__(self, infinitive, ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		""""Constructs Byt object by extending the Verb construction by overwriting the default stems."""
+
 		super().__init__(infinitive, ending, is_perfective, is_motion )
 		self._prefix = infinitive[:-len("být")]
 		self.infinitive = infinitive
@@ -185,11 +241,9 @@ class Byt(Verb):
 		
 		# update the endings for it to be to this class
 		self._tense_to_auxiliary[Tense.PRESENT] = self._present_endings
-
-	def kind(self):
-		print("Irregular verb: ", self.infinitive)
 	
 	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
+		"""Extends Verb's conjugate method by updating some present-tense endings."""
 		super().conjugate(tense_idx, person_idx)
 
 		# update the present tense with the present endings since there is no present stem
@@ -199,24 +253,27 @@ class Byt(Verb):
 			self._conjugation_table[Tense.PRESENT][person] = negation_prefix + ending
 
 class Class1(Verb):
+	"""Extension of Verb base class to accommodate Class 1 verbs and their endings."""
 	# verb class specific endings:
 	_present_endings = [ "ám", "áš", "á", "áme" ,"áte", "ají" ]
 
 	# sanity check, was making past, present, and future tack on present být conjugations otherwise
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.class_num = 1
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
 
-	def kind(self):
-		print("Class I verb, conjugates according to -at/-át paradigm")
-
 class Class1_at(Class1):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class1 verbs to accomodate Class1 verbs with -at/-át endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class1's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -230,25 +287,23 @@ class Class1_at(Class1):
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-	def kind(self):
-		print("Class I verb subclass, specific to regular -at/-át verbs")
-
 class Class2(Verb):
+	"""Extension of Verb base class to accommodate Class 2 verbs and their endings."""
 	# class specific endings
 	_present_endings = ["i/u", "eš", "e", "eme", "ete", "í"]
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.class_num = 2
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
 
-	def kind(self):
-		print("Class II verb, conjugates according to -ít/-ýt/-ovat paradigm")
-
-	def _apply_chtit_correction(self, tense_idx, person_idx):
+	def _apply_chtit_correction(self, tense_idx : int, person_idx :int):
+		"""Overwrites chtít conjugations in the present tense for the 3rd person plural and 1st person singular."""
 		if ((tense_idx == Tense.PRESENT or tense_idx == len(Tense))):
 			if (person_idx == Person.FIRST_SG or person_idx == len(Person)):
 				entry = self._conjugation_table[Tense.PRESENT][Person.FIRST_SG]
@@ -260,15 +315,19 @@ class Class2(Verb):
 				self._conjugation_table[Tense.PRESENT][Person.THIRD_PL] = entry
 		return
 		
-	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
+	def conjugate(self, tense_idx : int = len(Tense), person_idx : int = len(Person)):
+		"""Extension of Verb's conjugate but modifies a few conjugations afterwards."""
 		# if verb is chtít, ALWAYS overwrite/correct it
-		Verb.conjugate(self, tense_idx, person_idx)
+		super().conjugate(tense_idx, person_idx)
 		if re.search("chtít$", self.infinitive):
 			self._apply_chtit_correction(tense_idx, person_idx)
 
 
 class Class2_ityt(Class2):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class2 verbs to accomodate Class2 verbs with -ít/-ýt endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class2's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		_thematic_vowel = "i" if ending.startswith("í") else "y"
 		self.infinitive = infinitive
@@ -283,11 +342,11 @@ class Class2_ityt(Class2):
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-	def kind(self):
-		print("Class II verb subclass, specific to -ít/-ýt verbs")
-
 class Class2_ovat(Class2):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class2 verbs to accomodate Class2 verbs with -ovat endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class2's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -301,26 +360,26 @@ class Class2_ovat(Class2):
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-	def kind(self):
-		print("Class II verb subclass, specific to -ovat verbs")
-
 class Class3(Verb):
+	"""Extension of Verb base class to accommodate Class 3 verbs and their endings."""
 	# class specific endings
 	_present_endings = ["ím", "íš", "í", "íme", "íte", "í"]
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.class_num = 3
 
 		# update endings
 		self._tense_to_ending[Tense.PRESENT] = self._present_endings
 
-	def kind(self):
-		print("Class III verb, conjugates according to -it/et/-ět paradigm")
-
 class Class3_itet(Class3):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class3 verbs to accomodate Class3 verbs with -it/-et/-ět endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class3's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self._thematic_vowel = ending[0] # the thematic vowel is important here!
 		not_ending = infinitive[:-len(ending)]
@@ -351,7 +410,7 @@ class Class3_itet(Class3):
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
 	def _update_imperative_stem(self):
-		'''Updates the imperative stem according to edge cases'''
+		"""Updates the imperative stem according to edge cases."""
 
 		# syllables
 		syllables = vutils.Syllables(self.present_stem)
@@ -389,33 +448,23 @@ class Class3_itet(Class3):
 		elif re.search("(" + vutils.long_vowel + "(" + vutils.consonant + "){1}" + "it$)", self.infinitive):
 			self.imperative_stem = vutils.shorten(self.stem)
 
-		# the actually exceptional-but-still-regular cases are here:
-		if re.search("slzet$", self.infinitive):
-			self.imperative_stem = self.stem + "ej"
-		elif re.search("pustit$", self.infinitive):
-			self.imperative_stem = self.stem
-		elif re.search("chvěj$", self.infinitive):
-			self.imperative_stem = self.stem + "ěj"
-
-		
-
-	def kind(self):
-		print("Class III subclass, specific to regular -it/-et/-ět verbs")
-
 class Class4(Verb):
+	"""Extension of Verb base class to accommodate Class 4 verbs and their endings."""
 	# class specific endings
 	_present_endings = ["u", "eš", "e", "eme", "ete", "ou"]
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.class_num = 4
 
-	def kind(self):
-		print("Class IV verb, conjugates according to -nout/-st/-ct/-zt paradigm")
-
 class Class4_nout(Class4):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class4 verbs to accomodate Class4 verbs with -nout endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class4's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -434,11 +483,9 @@ class Class4_nout(Class4):
 
 		#self._passive_stem = self._stem + "nut"
 
-	def kind(self):
-		print("Class IV verb subclass, specific for -nout verbs")
-
-	def conjugate(self, tense_idx = len(Tense), person_idx = len(Person)):
-		Verb.conjugate(self, tense_idx, person_idx)
+	def conjugate(self, tense_idx : int = len(Tense), person_idx : int = len(Person)):
+		"""Extends Verb's conjugate but updates with vowel changes to the imperative plural endings."""
+		super().conjugate(tense_idx, person_idx)
 
 		# apply imperative corrections if stem is -ni
 		if self.imperative_stem[-2:] == "ni":
@@ -447,7 +494,10 @@ class Class4_nout(Class4):
 
 
 class Class4_st(Class4):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class4 verbs to accomodate Class4 verbs with -st endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class4's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -461,11 +511,11 @@ class Class4_st(Class4):
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-	def kind(self):
-		print("Class IV verb subclass, specific for -st verbs")
-
 class Class4_zt(Class4):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class4 verbs to accomodate Class4 verbs with -zt endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class4's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self._infinitive = infinitive
 		self.ending = ending
@@ -479,11 +529,11 @@ class Class4_zt(Class4):
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
 
-	def kind(self):
-		print("Class IV verb subclass, specific to -zt verbs")
-
 class Class4_ct(Class4):
-	def __init__(self, infinitive = "", ending = "", is_perfective = False, is_motion = (False, "")):
+	"""Extension of Class4 verbs to accomodate Class4 verbs with -ct endings."""
+	def __init__(self, infinitive : str = "", ending : str = "",
+			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+		"""Extends Class4's __init__ by overwriting the stems."""
 		super().__init__(infinitive, ending, is_perfective, is_motion)
 		self.infinitive = infinitive
 		self.ending = ending
@@ -496,6 +546,3 @@ class Class4_ct(Class4):
 		# update stems
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
 		self._stems = [self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
-
-	def kind(self):
-		print("Class IV verb subclass, specific to -ct verbs")
