@@ -18,12 +18,12 @@ from enum import IntEnum
 # DONE4. remove the regex strings (already defined in vutils)
 # 5. tests:
 #	DONE1. check that the irregular verbs get the right classes
-# 	2. check that regular verbs get the right classes
+# 	DONE2. check that regular verbs get the right classes
 #	3. check that ambiguous matches get the right classes
 #	4. add verb tests/attribute for a prefix portion
 #		(stems and such now be determined via the root) (the negation rule for the future still applies)
 #		(now just appending a prefix string to corresponding stem!)
-# 6. ADD TYPE HINTS
+# DONE6. ADD TYPE HINTS
 
 class IrregularIdx(IntEnum):
 	RGX_INFINITIVE = 0
@@ -35,7 +35,8 @@ class IrregularIdx(IntEnum):
 	#TRANSGRESSIVE_STEM = 6
 
 # dictionaries
-int_to_verb_class= { 1 : v.Class1, 2 : v.Class2, 3: v.Class3, 4: v.Class4 }
+int_to_verb_class = { 1 : v.Class1, 2 : v.Class2, 3: v.Class3, 4: v.Class4 }
+consonant_to_class= {"c" : v.Class4_ct, "s" : v.Class4_st, "z" : v.Class4_zt }
 
 def get_irregular_verbs() -> list:
 	"""
@@ -57,7 +58,7 @@ def get_irregular_verbs() -> list:
 
 	verbs = []
 	for line in lines:
-		verb = line.split()
+		verb = (line.rstrip("\n")).split(",") # remove the newline as well
 		verb[IrregularIdx.CONJUGATION_CLASS] = int(verb[IrregularIdx.CONJUGATION_CLASS]) # from str to int
 		verb = tuple(verb)
 		verbs.append(verb)
@@ -99,109 +100,90 @@ def construct_verb(word : str, match : tuple) -> v.Verb:
 def disambiguate_verb(match : list , word : str, root : str) -> v.Verb:
 	"""Disambiguates between an irregular verb match and a regular verb, constructing the irregular verb."""
 	verb = v.Verb()
-	m = match[0][IrregularIdx.RGX_INFINITIVE]
-	if m == "být" and word == "být" or word == "nebýt":
-		verb = v.Byt(word)
-	elif m == "dít" and word == "dít":
-		# set the stems and use the appropriate constructor
-		verb = construct_verb(word, match[0])
-	elif m == "stat" or word == "vstát":
-		# construct 1st
-		verb = construct_verb(word, match[0])
-	elif m == "stát":
-		if word == "stát":
-			# construct both matches
-			verb2 = construct_verb(word, match[1])
-			verb2.conjugate()
-			verb = construct_verb(word, match[0])
-		else:
-			# construct the 2ND match
-			verb = construct_verb(word, match[1])
+	# TODO: sklít, zdít, být, stát, stat are disambiguated from verbs present in irregular.txt
+	# OTHER verbs with SUBSTRINGS of irregular are compared if the verb, WITHOUT prefixes, is an exact match.
+	# m = match[0][IrregularIdx.RGX_INFINITIVE]
+	# if m == "být" and word == "být" or word == "nebýt":
+	# 	verb = v.Byt(word)
+	# elif m == "dít" and word == "dít":
+	# 	# set the stems and use the appropriate constructor
+	# 	verb = construct_verb(word, match[0])
+	# elif m == "stat" or word == "vstát":
+	# 	# construct 1st
+	# 	verb = construct_verb(word, match[0])
+	# elif m == "stát":
+	# 	if word == "stát":
+	# 		# construct both matches
+	# 		verb2 = construct_verb(word, match[1])
+	# 		verb2.conjugate()
+	# 		verb = construct_verb(word, match[0])
+	# 	else:
+	# 		# construct the 2ND match
+	# 		verb = construct_verb(word, match[1])
 
-	# regular verbs that have irregular verb as a substring
-	elif (m == "bát" and re.findall("dbát$", word)) or (m == "tát" and re.findall("ptát$", word)):
-		verb = None
-	elif (m == "kat" and (root != "kat" or re.findall("sekat$", word)) or (m == "kát" and root != "kát")):
-		verb = None
-	elif (m == "tít" and re.findall("(dštít|křtít)$", word)):
-		verb = None
-	elif (m == "stít" and re.findall("mstít|lstít$", word)):
-		verb = None
-	elif m == "pět" and re.findall("(čpět)$", word):
-		verb = None
-	else:
-		verb = construct_verb(word, match[0])
+	# # regular verbs that have irregular verb as a substring
+	# elif (m == "bát" and re.findall("dbát$", word)) or (m == "tát" and re.findall("ptát$", word)):
+	# 	verb = None
+	# elif (m == "kat" and (root != "kat" or re.findall("sekat$", word)) or (m == "kát" and root != "kát")):
+	# 	verb = None
+	# elif (m == "tít" and re.findall("(dštít|křtít)$", word)):
+	# 	verb = None
+	# elif (m == "stít" and re.findall("mstít|lstít$", word)):
+	# 	verb = None
+	# elif m == "pět" and re.findall("(čpět)$", word):
+	# 	verb = None
+	# else:
+	# 	verb = construct_verb(word, match[0])
 	return verb
 
-# TODO: refactor, do better naming
-# TODO: add tests to verify that this works
 def determine_verb_class(word : str, root : str) -> v.Verb:
-	"""Construct the proper Verb class based on the ending of <word> or <word> as <root>.
-	
-	Examine the ending found in either <word> or <root>. Slightly irregular
-	cases (adhering to a class but having an atypical albeit regular ending)
-	have their stems manually added.
-	"""
-	verb  = v.Verb()
-	x = []
+	"""Construct the proper Verb class based on the ending of <root> formed from <word>."""
+	verb  = None
 
-	# chovat is class1 otherwise class 2
-	if (x := re.findall("ovat$", root)) and not re.search("chovat$", word):
-		verb = v.Class2_ovat(word, x[0])
-	elif x := re.findall("ít|ýt$", word):
-		# řít endings, přít added manually since without t looks like pří prefix and not part of 'root'
-		if y := re.findall("řít$", word):
-			# class4 general constructor. manually set stems. ...řu, ...řel, ...ři, ending ít
-			verb = v.Class4(word, x[0])
-			stem = word[:-len(x[0])]
-			verb.set_stem(stem)
-			verb.set_present_stem(stem)
-			verb.set_past_stem(stem + "el")
-			verb.set_imperative_stem(stem + "i")
-		# cluster rule
-		elif re.search(vutils.consonant + "{2,}ít$", root):
-			# class3 general constructor. manually set stems. past thematic vowel is e if stem ends in l, if ends in v/d/n/b: ě, +i to stem in imperative, present stem is stem
-			verb = v.Class3(word, x[0])
-			stem = word[:-2]
-			verb.set_stem(stem)
-			verb.set_present_stem(stem)
-			past = "el" if stem[-1] == "l" else ("ěl" if stem[-1] == "v" or stem[-1] == "d" or stem[-1] == "n" else "il")
-			verb.set_past_stem(stem + past)
-			verb.set_imperative_stem(stem + "i")
+	# just as a word of note, all the matches have the [0] subscription in order to actually
+	# access the item within the Match object.
+	# 1. check for -at/-át ending
+	if at_match := re.search("([aá]t)$", word):
+		if (ovat_match := re.search("(ovat)$", word)) and not re.search("chovat$", word):
+			verb = v.Class2_ovat(word, ovat_match[0])
+		elif (apat_match := re.search("([aá][bpmz]at)$", word)) and not re.search("(papat|chlámat)", word):
+			verb = v.Class4_apat(word, apat_match[0])
+		elif (cluster_at_match := re.search("((" + vutils.consonant + ")+[pvrlhž][áa]t)$", word)) \
+			and not re.search("(hr[áa]t)|(pl[aá]t)$", word):
+			verb = v.Class4_cluster(word, cluster_at_match[0])
+		elif long_at_match := re.search("([lkvstmrř]át)$", word):
+			verb = v.Class2_at(word, long_at_match[0])
 		else:
-			verb = v.Class2_ityt(word, x[0])
-	elif x := re.findall("at|át$", root):
-		if re.search("ápat$", root):
-			# class4 general constructor. manusally set stems. present stem is sans at, past: t->l, imperative: at->ej
-			verb = v.Class4(word, x[0])
-			stem = word[:-len(x[0])]
-			verb.set_stem(stem)
-			verb.set_present_stem(stem)
-			verb.set_past_stem(stem + "al")
-			verb.set_imperative_stem(stem + "ej")
+			verb = v.Class1_at(word, at_match[0])
+	
+	# 2. check for -ít/-ýt ending
+	elif ityt_match := re.search("([íý]t)$", word):
+		if (rit_match := re.search("(řít)$", word)) and not re.search("(zřít)$", word):
+			verb = v.Class4_rit(word, rit_match[0])
+		elif (cluster_match := re.search("((" + vutils.consonant + "){2,}ít)$", root)) and not re.search("(blít)$", word):
+			verb = v.Class3_cluster(word, cluster_match[0])
 		else:
-			verb = v.Class1_at(word, x[0])
-	elif x := re.findall("it|ět|et$", root):
-		verb = v.Class3_itet(word, x[0])
-	elif x := re.findall("nout$", root):
-		verb = v.Class4_nout(word, x[0])
-	elif bool(x := re.findall(vutils.long_vowel + "ct$", root)) or bool(x := re.findall("ouct$", root)):
-		verb = v.Class4_ct(word, x[0][-2:])
-	elif x := re.findall(vutils.long_vowel + "st$", root):
-		verb = v.Class4_st(word, x[0][-2:])
-	elif x := re.findall(vutils.long_vowel + "zt$", root):
-		verb = v.Class4_zt(word, x[0][-2:])
-	elif x := re.findall("out$", root):
-		# -out ending. class2 general. manually set stems: present uj, past ul, imperative uj
-		verb = v.Class2(word, x[0])
-		stem = word[:-len(x[0])]
-		verb.set_stem(stem)
-		verb.set_present_stem(stem + "uj")
-		verb.set_past_stem(stem + "ul")
-		verb.set_imperative_stem(stem + "uj")
+			verb = v.Class2_ityt(word, ityt_match[0])
+	
+	# 3. check for -out ending
+	elif out_match := re.search("(out)$", word):
+		if nout_match := re.search("(nout)$", word):
+			verb = v.Class4_nout(word, nout_match[0])
+		else:
+			verb = v.Class2_out(word, out_match[0])
+	
+	# 4. check for -it/-et/-ět ending
+	elif itet_match := re.search("([ieě]t)$", word):
+		verb = v.Class3_itet(word, itet_match[0])
+	
+	# 5. check for -ct/-st/-zt endings
+	elif szct_match := re.search("((" + vutils.long_vowel + ")[csz]t)$", word):
+		thematic_consonant = szct_match[0][-2] # get the consonant before the -t
+		verb = (vutils.get_val_from_dict(consonant_to_class, thematic_consonant))(word, szct_match[0])
+	
+	# 6. no match has been found...
 	else:
-		# TODO: print out a different message!
-		print("none of the above")
+		print("No verb class pattern corresponding with given verb.")
 		verb = None
 	return verb
 

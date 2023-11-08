@@ -3,22 +3,25 @@
 import pytest
 import src.conjugator_utils as conjutils
 
+
+
+#### FILE DATA TESTS ####
 # tests that get_irregular_verbs functions properly by examining contents of the 1st, 10th, 30th, and 75th lines. 
 def test_get_irregular_verbs():
     # infinitive, class, stem, past stem, imperative stem, passive stem?, transgressive stem?
     irregular_verbs = conjutils.get_irregular_verbs()
 
     # items
-    #  0: zvát		4		zv		zval		zvi
-    # 10: brát		4		ber		bral		ber
-    # 30: spát		3		sp		spal		spi
-    # 75: ržát		4		rž		ržal		rži
+    # 12: jít         4       jd      šel         pojď
+    # 15: spát		3		sp		spal		spi
+    # 28: mít         1       m       měl         měj
+    # 39: vzít        4       vezm    vzal        vezmi
 
-    indices = [0, 9, 29, 74]
-    expected  = [("zvát", 4, "zv", "zval", "zvi"),
-                ("brát", 4, "ber", "bral", "ber"),
-                ("spát", 3, "sp", "spal", "spi"),
-                ("ržát", 4, "rž", "ržal", "rži")]
+    indices = [12, 15, 28, 39]
+    expected  = [("jít", 4, "jd", "šel", "pojď"),
+                ("sp[áa]t", 3, "sp", "spal", "spi"),
+                ("mít", 1, "m", "měl", "měj"),
+                ("vzít", 4, "vezm", "vzal", "vezmi")]
     for idx in range(len(indices)):
         for irregularIdx in range(len(conjutils.IrregularIdx)):
             assert expected[idx][irregularIdx] == irregular_verbs[indices[idx]][irregularIdx]
@@ -33,9 +36,9 @@ def test_verb_class():
 def test_find_verb_matches():
     irregular_verbs = conjutils.get_irregular_verbs()
 
-    # stát		4		stan		stal		staň
+    # st[áa]t		4		stan		stal		staň
     # stát		3		stoj		stál		stůj
-    expected = [("stát", 4, "stan", "stal", "staň"), ("stát", 3 , "stoj", "stál", "stůj")]
+    expected = [("st[áa]t", 4, "stan", "stal", "staň"), ("stát", 3 , "stoj", "stál", "stůj")]
     matches = []
     matches = conjutils.find_verb_matches("stát", irregular_verbs)
     for verb_idx in range(len(expected)):
@@ -98,3 +101,194 @@ def test_get_prefix():
     assert not_root == "ne"
     assert root == "dalekohledpo"
  
+
+ #### VERB CLASSIFICAITON TESTS ####
+def test_at_class1_classification():
+    infinitives = ["lat", "kat", "plat", "vat", "smat", "hrat", "hřat", "sat", "tat",
+                   "kázát", "mazát", 
+                   #"klamát", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC
+                   "lapát", 
+                   #"lámát", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC
+                   "chápát", "tápát", "ťapát",
+                   #"chlámat", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC 
+                   "papat"
+                   ]
+    for i in range(len(infinitives)):
+        a = conjutils.determine_verb_class(infinitives[i], infinitives[i])
+        assert a.class_num == 1
+        assert a.kind() == "Class1_at"
+
+def test_at_class2_classification():
+    # lát, kát, plát, vát, smát, hrát, hřát, sát, tát correctly classified
+    # dát is class 1
+    infinitives = ["lát", "kát", "plát", "vát", "smát", "hrát", "hřát", "sát", "tát"]
+    for i in range(len(infinitives)):
+        a = conjutils.determine_verb_class(infinitives[i], infinitives[i])
+        assert a.class_num == 2
+        assert a.kind() == "Class2_át"
+
+    a = conjutils.determine_verb_class("dát", "dát")
+    assert a.class_num != 2
+    assert a.kind() != "Class2_át"
+
+    a = conjutils.determine_verb_class("tat", "tat")
+    assert a.class_num != 2
+    assert a.kind() != "Class2_át"
+
+def test_at_class4_classification():
+    # apat, azat, etc. but not chlamat or papat
+    infinitives = ["kázat", "mazat", "klamat", "lapat", "lámat", "chápat", "tápat", "ťapat"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_ápat"
+
+    a = conjutils.determine_verb_class("chlámat", "chlámat")
+    assert a.class_num != 4
+    assert a.class_num == 1
+    assert a.kind() != "Class4_ápat"
+    assert a.kind() == "Class1_at"
+
+    a = conjutils.determine_verb_class("papat", "papat")
+    assert a.class_num != 4
+    assert a.class_num == 1
+    assert a.kind() != "Class4_ápat"
+    assert a.kind() == "Class1_at"
+
+def test_at_cluster_classification():
+    infinitives = ["zvát", "brát", "prát", "drát", "srát", "štvát", "slát", "ržát", "řvát", "žrát", "lhát", "rvát", "stlát", "cpát"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_cluster"
+    
+
+def test_ityt_classification():
+    infinitives = ["zedít", "skelít", "omdelít", "bzedít", "senít",
+                   "telít", "skevít", "redít", "menít", "msetít",
+                   "hřebít", "dšetít", "cetít", "čenít", "bedít",
+                   "zedýt", "skelýt", "omdelýt", "bzedýt", "senýt",
+                   "telýt", "skevýt", "redýt", "menýt", "msetýt", 
+                   "hřebýt", "dšetýt", "cetýt", "čenýt", "bedýt", 
+                   "zerýt","blít"]
+    
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 2
+        assert a.kind() == "Class2_ityt"
+
+def test_ovat_classification():
+    # chovat is not class2, but studovat is.
+    a = conjutils.determine_verb_class("chovat", "chovat")
+    assert a.class_num != 2
+    assert a.kind() != "Class2_ovat"
+
+    a = conjutils.determine_verb_class("studovat", "studovat")
+    assert a.class_num == 2
+    assert a.kind() == "Class2_ovat"
+
+def test_ityt_cluster_classification():
+    infinitives = ["zdít", "sklít", "omdlít", 
+                   "bzdít", "snít", "tlít",
+                   "skvít", "rdít", "mnít", "mstít",
+                   "hřbít", "dštít", "ctít", "čnít", "bdít",
+                   "zřít"
+                  ]
+    
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 3
+        assert a.kind() == "Class3_cluster"
+
+    # test with single consonant prefixes: s,l,z,v
+    prefixes = ["v", "s", "l", "z"]
+    infinitives = ["lít", "dít"]
+    for prefix in prefixes:
+        for infinitive in infinitives:
+            a = conjutils.determine_verb_class(prefix+ infinitive, infinitive)
+            assert a.class_num == 2
+            assert a.kind() == "Class2_ityt"
+
+def test_ityt_rit_classification():
+    # zřít is class3, but zeřít is class4.
+    a = conjutils.determine_verb_class("zřít", "zřít")
+    assert a.class_num == 3
+    assert a.kind() == "Class3_cluster"
+
+    a = conjutils.determine_verb_class("zeřít", "zeřít")
+    assert a.class_num == 4
+    assert a.kind() == "Class4_řít"
+
+def test_out_classification():
+    # nout verbs are class4, out verbs are class2
+    infinitives = ["zout", "plout", "dout", "slout", "kout", "obout"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 2
+        assert a.kind() == "Class2_out"
+
+    infinitives = ["zapomenout", "zhasnout", "buchnout"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_nout"
+
+def test_itet_classification():
+
+    infinitives = ["mručet", "skočit", "dunět", "chvět", "vyvíjet",
+                   "vyrábět", "umět", "přenášet", "ztrácet", "dovádět",
+                   "pouštět", "zkoušet", "prospět", "tvářet", "slzet",
+                   "chýlit", "pálit", "blížit", "bouřit", "bránit",
+                   "cítit", "hájit", "kamarádit", "podřídit", "půlit",
+                    "rdousit", "sloučit", "tvářit", "úžit", "léčit",
+                    "sílit", "shromáždit", "vřeštět", "ošetřit",
+                    "brázdit", "ověnčit", "bruslit", "kreslit",
+                    "běsnit", "hmoždit", "čpět", "patřit", "zhoršit",
+                    "zlepšit", "rozluštit", "vrstvit", "rozmístit",
+                    "různit", "sídlit", "svraštit", "šustit",
+                    "tříštit", "ústit", "prýštit"
+                  ]
+    
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 3
+        assert a.kind() == "Class3_itet"
+
+def test_sczt_classifcation():
+    # all require long vowels
+
+    # st
+    infinitives = ["bást", "bést", "bíst", "boust", "búst", "bůst", "býst"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_st"
+
+    # zt
+    infinitives = ["bázt", "bézt", "bízt", "bouzt", "búzt", "bůzt", "býzt"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_zt"
+
+    # ct
+    infinitives = ["báct", "béct", "bíct", "bouct", "búct", "bůct", "býct"]
+    for infinitive in infinitives:
+        a = conjutils.determine_verb_class(infinitive, infinitive)
+        assert a.class_num == 4
+        assert a.kind() == "Class4_ct"
+
+
+def test_invalid_classification():
+    # verify that the resulting verb is still None
+
+    # no verbs end in ét, ůt, short vowels with st/ct/zt
+    # hard consonants with soft vowels following and vice versa also bad
+    bad_infinitives = [
+        "bét", "bůt",
+        "bact", "bect", "bict", "běct", "buct", "boct", "byct",
+        "bazt", "bezt", "bizt", "bězt", "buzt", "bozt", "byzt",
+        "bast", "best", "bist", "běst", "bust", "bost", "byst",
+    ]
+    for bad_infinitive in bad_infinitives:
+        assert conjutils.determine_verb_class(bad_infinitive, bad_infinitive) == None

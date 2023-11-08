@@ -1,6 +1,5 @@
 # TODO: imports being effing annoying.
 import src.conjugator_utils as conjutils
-import src.verbs as v
 
 # TODO: actually make this a 'main' function
 ############## MAIN PROGRAM ####################
@@ -8,9 +7,10 @@ import src.verbs as v
 irregular_verbs = conjutils.get_irregular_verbs()
 prefixes = conjutils.get_prefixes()
 
+# TODO: check that a verb is a verb of motion
+
 # TODO: add breaking condition!
 while(1):
-
 	word = input("please enter a verb infinitive: ")
 	if word == "q":
 		break
@@ -25,3 +25,4 @@ while(1):
 		verb = conjutils.determine_verb_class(word, root)
 	if verb:
 		verb.conjugate()
+		# TODO: display the conjugation
