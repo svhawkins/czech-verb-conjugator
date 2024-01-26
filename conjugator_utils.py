@@ -6,9 +6,10 @@ proper Verb class.
 """
 
 import re
-import src.verbs as v
-import src.verb_utils as vutils
+import verbs as v
+import verb_utils as vutils
 from enum import IntEnum
+import os
 
 # TO DO:
 
@@ -20,9 +21,13 @@ from enum import IntEnum
 #	DONE1. check that the irregular verbs get the right classes
 # 	DONE2. check that regular verbs get the right classes
 #	3. check that ambiguous matches get the right classes
-#	4. add verb tests/attribute for a prefix portion
-#		(stems and such now be determined via the root) (the negation rule for the future still applies)
-#		(now just appending a prefix string to corresponding stem!)
+#		main cases: verbs which start with alleged single-letter prefixes (s, v, z) but are actually not prefixes, but stem.
+#		among others
+#	4. add verb tests/attribute for prefix portion
+#		- stems and such now be determined via the root
+#			(append ne-exclusive prefix to corresponding stem)
+#		- the negation rule for the future still applies
+#			(ne- is always prepended before entire verb)
 # DONE6. ADD TYPE HINTS
 
 class IrregularIdx(IntEnum):
@@ -52,7 +57,7 @@ def get_irregular_verbs() -> list:
 	Return:
 		list[tuple[str, int, str, str, str]]
 	"""
-	file = open("../data/irregular.txt", "r")
+	file = open(os.environ["VERB_DATA_DIR"] + "/" + "irregular.txt", "r")
 	lines = file.readlines()
 	file.close()
 
@@ -151,7 +156,7 @@ def determine_verb_class(word : str, root : str) -> v.Verb:
 		elif (cluster_at_match := re.search("((" + vutils.consonant + ")+[pvrlhž][áa]t)$", word)) \
 			and not re.search("(hr[áa]t)|(pl[aá]t)$", word):
 			verb = v.Class4_cluster(word, cluster_at_match[0])
-		elif long_at_match := re.search("([lkvstmrř]át)$", word):
+		elif long_at_match := re.search("([ltkvsmrř]át)$", word):
 			verb = v.Class2_at(word, long_at_match[0])
 		else:
 			verb = v.Class1_at(word, at_match[0])
@@ -160,7 +165,8 @@ def determine_verb_class(word : str, root : str) -> v.Verb:
 	elif ityt_match := re.search("([íý]t)$", word):
 		if (rit_match := re.search("(řít)$", word)) and not re.search("(zřít)$", word):
 			verb = v.Class4_rit(word, rit_match[0])
-		elif (cluster_match := re.search("((" + vutils.consonant + "){2,}ít)$", root)) and not re.search("(blít)$", word):
+		elif (cluster_match := re.search("((" + vutils.consonant + "){2,}ít)$", root)) \
+			and not re.search("(blít)|(hnít)$", word):
 			verb = v.Class3_cluster(word, cluster_match[0])
 		else:
 			verb = v.Class2_ityt(word, ityt_match[0])
@@ -187,10 +193,9 @@ def determine_verb_class(word : str, root : str) -> v.Verb:
 		verb = None
 	return verb
 
-# returns .txt as a single regex string to represent the prefixes a verb may begin with
 def get_prefixes() -> str:
 	"""Retrieve the prefixes from the file as a single regex expression."""
-	file = open("../data/prefix.txt", "r")
+	file = open(os.environ["VERB_DATA_DIR"] + "/" + "prefix.txt", "r")
 	lines = file.readlines()
 	file.close()
 

@@ -1,7 +1,7 @@
 # tests conjugation utilities (mainly verb class determination)
 
 import pytest
-import src.conjugator_utils as conjutils
+import conjugator_utils as conjutils
 
 
 
@@ -11,15 +11,9 @@ def test_get_irregular_verbs():
     # infinitive, class, stem, past stem, imperative stem, passive stem?, transgressive stem?
     irregular_verbs = conjutils.get_irregular_verbs()
 
-    # items
-    # 12: jít         4       jd      šel         pojď
-    # 15: spát		3		sp		spal		spi
-    # 28: mít         1       m       měl         měj
-    # 39: vzít        4       vezm    vzal        vezmi
-
-    indices = [12, 15, 28, 39]
+    indices = [13, 17, 32, 43]
     expected  = [("jít", 4, "jd", "šel", "pojď"),
-                ("sp[áa]t", 3, "sp", "spal", "spi"),
+                ("spát", 3, "sp", "spal", "spi"),
                 ("mít", 1, "m", "měl", "měj"),
                 ("vzít", 4, "vezm", "vzal", "vezmi")]
     for idx in range(len(indices)):
@@ -38,7 +32,7 @@ def test_find_verb_matches():
 
     # st[áa]t		4		stan		stal		staň
     # stát		3		stoj		stál		stůj
-    expected = [("st[áa]t", 4, "stan", "stal", "staň"), ("stát", 3 , "stoj", "stál", "stůj")]
+    expected = [("stát", 4, "stan", "stal", "staň"), ("stát", 3 , "stoj", "stál", "stůj")]
     matches = []
     matches = conjutils.find_verb_matches("stát", irregular_verbs)
     for verb_idx in range(len(expected)):

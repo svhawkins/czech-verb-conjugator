@@ -1,7 +1,7 @@
 # tests verb utilities
 
 import pytest
-import src.verb_utils as vutils
+import verb_utils as vutils
 
 # tests italics() with the empty string 
 def test_italics():

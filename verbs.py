@@ -41,7 +41,7 @@ Class4 subclasses (7):
 	- Class4_cluster
 """
 
-import src.verb_utils as vutils
+import verb_utils as vutils
 import re
 from enum import IntEnum
 
@@ -296,7 +296,7 @@ class Class1(Verb):
 		return "Class1"
 
 class Class1_at(Class1):
-	"""Extension of Class1 verbs to accomodate Class1 verbs with -at/-át endings."""
+	"""Extension of Class1 verbs to accommodate Class1 verbs with -at/-át endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class1's __init__ by overwriting the stems."""
@@ -358,7 +358,7 @@ class Class2(Verb):
 
 
 class Class2_ityt(Class2):
-	"""Extension of Class2 verbs to accomodate Class2 verbs with -ít/-ýt endings."""
+	"""Extension of Class2 verbs to accommodate Class2 verbs with -ít/-ýt endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class2's __init__ by overwriting the stems."""
@@ -383,7 +383,7 @@ class Class2_ityt(Class2):
 		return "Class2_ityt"
 
 class Class2_ovat(Class2):
-	"""Extension of Class2 verbs to accomodate Class2 verbs with -ovat endings."""
+	"""Extension of Class2 verbs to accommodate Class2 verbs with -ovat endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class2's __init__ by overwriting the stems."""
@@ -424,7 +424,7 @@ class Class3(Verb):
 		return "Class3"
 
 class Class3_itet(Class3):
-	"""Extension of Class3 verbs to accomodate Class3 verbs with -it/-et/-ět endings."""
+	"""Extension of Class3 verbs to accommodate Class3 verbs with -it/-et/-ět endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class3's __init__ by overwriting the stems."""
@@ -521,7 +521,7 @@ class Class4(Verb):
 		return "Class4"
 
 class Class4_nout(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -nout endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -nout endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -558,7 +558,7 @@ class Class4_nout(Class4):
 
 
 class Class4_st(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -st endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -st endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -566,7 +566,7 @@ class Class4_st(Class4):
 		self.infinitive = infinitive
 		self.ending = ending
 		# í -> ě/e, NOT í -> i
-		self.stem = vutils.shorten(infinitive[:-len(ending)])
+		self.stem = vutils.shorten(infinitive[:-2]) # remove the -st
 		if self.stem[-1] == "i":
 			self.stem = self.stem[:-1] + "e"
 
@@ -584,7 +584,7 @@ class Class4_st(Class4):
 		return "Class4_st"
 
 class Class4_zt(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -zt endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -zt endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -592,7 +592,7 @@ class Class4_zt(Class4):
 		self._infinitive = infinitive
 		self.ending = ending
 		# í -> ě/e, NOT í -> i
-		self.stem = vutils.shorten(infinitive[:-len(ending)])
+		self.stem = vutils.shorten(infinitive[:-2]) # remove the -zt
 		if self.stem[-1] == "i":
 			self.stem = self.stem[:-1] + "e"
 		
@@ -610,7 +610,7 @@ class Class4_zt(Class4):
 		return "Class4_zt"
 
 class Class4_ct(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -ct endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -ct endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -618,7 +618,7 @@ class Class4_ct(Class4):
 		self.infinitive = infinitive
 		self.ending = ending
 		# í -> ě/e, NOT í -> i
-		self.stem = vutils.shorten(infinitive[:-len(ending)])
+		self.stem = vutils.shorten(infinitive[:-2]) # remove the -ct
 		if self.stem[-1] == "i":
 			self.stem = self.stem[:-1] + "e"
 
@@ -642,7 +642,7 @@ class Class4_ct(Class4):
 #### semi-irregular classes ####
 # verb classes that are technically regular, but at first glance their classes are 'misleading'
 class Class4_rit(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -řít endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -řít endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -672,7 +672,7 @@ class Class4_rit(Class4):
 		return "Class4_řít"
 
 class Class2_out(Class2):
-	"""Extension of Class2 verbs to accomodate Class2 verbs with -out endings."""
+	"""Extension of Class2 verbs to accommodate Class2 verbs with -out endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class2's __init__ by overwriting the stems."""
@@ -694,7 +694,7 @@ class Class2_out(Class2):
 		return "Class2_out"
 
 class Class2_at(Class2):
-	"""Extension of Class2 verbs to accomodate Class2 verbs with -át endings."""
+	"""Extension of Class2 verbs to accommodate Class2 verbs with -át endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class2's __init__ by overwriting the stems."""
@@ -702,7 +702,7 @@ class Class2_at(Class2):
 		self.class_num = 2
 		self.infinitive = infinitive
 		self.ending = ending
-		self.stem = self.infinitive[:-len(ending)]
+		self.stem = self.infinitive[:-2] # remove the -át
 
 		# soft stem endings take ej, rest take aj
 		self.present_stem = self.stem + "aj"
@@ -722,7 +722,7 @@ class Class2_at(Class2):
 		return "Class2_át"
 	
 class Class3_cluster(Class3):
-	"""Extension of Class3 verbs to accomodate Class3 verbs with cluster stems."""
+	"""Extension of Class3 verbs to accommodate Class3 verbs with cluster stems."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class3's __init__ by overwriting the stems."""
@@ -730,7 +730,7 @@ class Class3_cluster(Class3):
 		self.class_num = 3
 		self.infinitive = infinitive
 		self.ending = ending
-		self.stem = self.infinitive[:-len(ending)]
+		self.stem = self.infinitive[:-2] # remove the -ít
 		self.present_stem = self.stem
 
 		# the thematic vowel in the past stem varies with what the final stem consonant is
@@ -768,7 +768,7 @@ class Class3_cluster(Class3):
 		return "Class3_cluster"
 	
 class Class4_apat(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -ápat, ámat, ázat endings."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -ápat, ámat, ázat endings."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""
@@ -796,7 +796,7 @@ class Class4_apat(Class4):
 
 
 class Class4_cluster(Class4):
-	"""Extension of Class4 verbs to accomodate Class4 verbs with -át endings and clusters in the root."""
+	"""Extension of Class4 verbs to accommodate Class4 verbs with -át endings and clusters in the root."""
 	def __init__(self, infinitive : str = "", ending : str = "",
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		"""Extends Class4's __init__ by overwriting the stems."""

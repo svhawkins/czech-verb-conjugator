@@ -1,7 +1,7 @@
 # tests verb classes in initialization and conjugation of non-present tenses and non-indicative moods
 
 import pytest
-import src.verbs as v
+import verbs as v
 
 ############# BASE CLASS VERB TESTS ################
 
