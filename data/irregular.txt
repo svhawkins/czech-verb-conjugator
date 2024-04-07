@@ -37,7 +37,7 @@ plést,4,plet,pletl,pleť
 třást,4,třes,třásl,třes
 pást,4,pas,pásl,pas
 plavat,4,plav,plaval,plav
-čít,4,čn,čal,čni
+začít,4,začn,začal,začni
 pět,2,pěj,pěl,pěj
 tít,4,tn,ťal,tni
 klát,1,kl,klal,kol
@@ -49,3 +49,6 @@ sníst,3,sn,snědl,sněz
 pnout,4,pn,pjal,pni
 skákat,4,skáč,skákal,skákej
 česat,4,češ,česal,češ
+zet,2,zej,zel,zej
+zábst,4,zeb,zábl,zeb
+zát,2,zej,zel,zej

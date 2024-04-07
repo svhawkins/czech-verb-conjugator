@@ -8,7 +8,6 @@ prefixes = conjutils.get_prefixes()
 
 # TODO: check that a verb is a verb of motion
 
-# TODO: add a (better) breaking condition!
 while(1):
 	word = input("enter a verb infinitive (or 'q' to quit): ")
 	if word == "q":
@@ -24,4 +23,5 @@ while(1):
 		verb = conjutils.determine_verb_class(word, root)
 	if verb:
 		verb.conjugate()
-		# TODO: display the conjugation
+		# TODO: display the conjugation (prettily)
+		print(verb.get_table())

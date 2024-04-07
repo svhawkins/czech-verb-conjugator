@@ -133,7 +133,8 @@ class Verb:
 	_tense_to_auxiliary = [ _empty, _past_auxiliary, _future_auxiliary, _empty, _conditional_auxiliary]
 
 	def __init__(self, infinitive : str = "", ending : str = "",
-			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+			  	 is_perfective : bool = False, is_motion : tuple = (False, ""),
+				 stems : tuple = ()):
 		"""
 		Construct a Verb object.
 
@@ -142,6 +143,7 @@ class Verb:
 			ending (default "") : str --> the verb's ending
 			is_perfective (default False) : bool --> indicator if a verb is perfective
 			is_motion (default (False, "") : tuple(bool, str)) --> indicator if verb is motion verb and accompanying prefix
+			stems (default empty) " tuple(str, int, str, str, str) --> stem/class data to override defaults
 		"""
 		self.class_num = 0
 		# stems (public)
@@ -155,6 +157,14 @@ class Verb:
 		#self.present_transgressive_stem = ""
 		#self.past_transgressive_stem = ""
 
+		if (len(stems) > 0):
+			prefix = infinitive[:-len(stems[0])]
+			self.infinitive = prefix + stems[0]
+			self.stem = prefix + stems[2]
+			self.present_stem = prefix + stems[2]
+			self.past_stem = prefix + stems[3]
+			self.imperative_stem = prefix + stems[4]
+		
 		# stems. make sure the 'future stem' does NOT contain the negation prefix ne-
 		self._is_negative = False
 		future_stem = self.infinitive
@@ -248,8 +258,10 @@ class Byt(Verb):
 			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
 		""""Constructs Byt object by extending the Verb construction by overwriting the default stems."""
 
-		super().__init__(infinitive, ending, is_perfective, is_motion )
+		super().__init__(infinitive, ending, is_perfective, is_motion)
+		self.class_num = -1 # irregular verb indicator
 		self._prefix = infinitive[:-len("být")]
+		self._is_negative = self._prefix != ""
 		self.infinitive = infinitive
 		self.past_stem = self._prefix + "byl"
 		self.imperative_stem = self._prefix + "buď"
@@ -267,8 +279,8 @@ class Byt(Verb):
 		# update the present tense with the present endings since there is no present stem
 		negation_prefix = "ne" if self._is_negative == True else ""
 		for person in range(len(Person)):
-			ending = "ní" if self._is_negative and person == Person.THIRD_SG else self._present_endings[person]
-			self._conjugation_table[Tense.PRESENT][person] = negation_prefix + ending
+				ending = "ní" if  self._is_negative and person == Person.THIRD_SG else self._present_endings[person]
+				self._conjugation_table[Tense.PRESENT][person] = negation_prefix + ending
 
 	def kind(self) -> str:
 		"""Return type of class as string"""
@@ -283,9 +295,10 @@ class Class1(Verb):
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive : str = "", ending : str = "",
-			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+			  	 is_perfective : bool = False, is_motion : tuple = (False, ""),
+				 stems : tuple = ()):
 		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
-		super().__init__(infinitive, ending, is_perfective, is_motion)
+		super().__init__(infinitive, ending, is_perfective, is_motion, stems)
 		self.class_num = 1
 
 		# update endings
@@ -324,9 +337,10 @@ class Class2(Verb):
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive : str = "", ending : str = "",
-			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+			  	 is_perfective : bool = False, is_motion : tuple = (False, ""),
+				 stems : tuple = ()):
 		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
-		super().__init__(infinitive, ending, is_perfective, is_motion)
+		super().__init__(infinitive, ending, is_perfective, is_motion, stems)
 		self.class_num = 2
 
 		# update endings
@@ -411,9 +425,10 @@ class Class3(Verb):
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive : str = "", ending : str = "",
-			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+			  	 is_perfective : bool = False, is_motion : tuple = (False, ""),
+				 stems : tuple = ()):
 		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
-		super().__init__(infinitive, ending, is_perfective, is_motion)
+		super().__init__(infinitive, ending, is_perfective, is_motion, stems)
 		self.class_num = 3
 
 		# update endings
@@ -511,9 +526,10 @@ class Class4(Verb):
 	_tense_to_ending = [ _present_endings, Verb._participle_endings, Verb._empty, Verb._imperative_endings, Verb._participle_endings]
 	_tense_to_auxiliary = [ Verb._empty, Verb._past_auxiliary, Verb._future_auxiliary, Verb._empty, Verb._conditional_auxiliary]
 	def __init__(self, infinitive : str = "", ending : str = "",
-			  	 is_perfective : bool = False, is_motion : tuple = (False, "")):
+			  	 is_perfective : bool = False, is_motion : tuple = (False, ""),
+				 stems : tuple = ()):
 		"""Extends Verb's __init__ by overwriting the class_num and present tense endings."""
-		super().__init__(infinitive, ending, is_perfective, is_motion)
+		super().__init__(infinitive, ending, is_perfective, is_motion, stems)
 		self.class_num = 4
 
 	def kind(self) -> str:

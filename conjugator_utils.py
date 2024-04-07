@@ -11,25 +11,6 @@ import verb_utils as vutils
 from enum import IntEnum
 import os
 
-# TO DO:
-
-# DONE1. add better doc strings, even if just the one-liner ones
-# DONE2. make the 'indexing constants' be an int-enum class
-# DONE3. make elif trees for simple assignments be done with maps instead (not sure about verb class disambiguations...)
-# DONE4. remove the regex strings (already defined in vutils)
-# 5. tests:
-#	DONE1. check that the irregular verbs get the right classes
-# 	DONE2. check that regular verbs get the right classes
-#	3. check that ambiguous matches get the right classes
-#		main cases: verbs which start with alleged single-letter prefixes (s, v, z) but are actually not prefixes, but stem.
-#		among others
-#	4. add verb tests/attribute for prefix portion
-#		- stems and such now be determined via the root
-#			(append ne-exclusive prefix to corresponding stem)
-#		- the negation rule for the future still applies
-#			(ne- is always prepended before entire verb)
-# DONE6. ADD TYPE HINTS
-
 class IrregularIdx(IntEnum):
 	RGX_INFINITIVE = 0
 	CONJUGATION_CLASS = 1
@@ -85,34 +66,34 @@ def find_verb_matches(word : str, verbs : list) -> list:
 	matches = [verb for verb in verbs if re.findall("(" + verb[IrregularIdx.RGX_INFINITIVE] + ")" + "$", word) != []]
 	return matches
 
-def verb_class(word : str, class_num: int) -> v.Verb:
+def verb_class(word : str, match : tuple) -> v.Verb:
 	"""Return corresponding base class Verb (Class 1-4 ONLY) from provided <class_num>"""
-	return vutils.get_val_from_dict(int_to_verb_class, class_num)(word)
+	return vutils.get_val_from_dict(int_to_verb_class,
+								 	match[IrregularIdx.CONJUGATION_CLASS])(infinitive = word, stems = match)
 
 def construct_verb(word : str, match : tuple) -> v.Verb:
 	"""Construct a Verb object manually by overwriting stem values from __init__()."""
-	remainder = word[:-len(match[IrregularIdx.RGX_INFINITIVE])]
-	verb = v.Verb()
-	verb = verb_class(word, match[IrregularIdx.CONJUGATION_CLASS])
-	verb.present_stem = remainder + match[IrregularIdx.PRESENT_STEM]
-	verb.past_stem = remainder + match[IrregularIdx.PAST_STEM]
-	verb.imperative_stem = remainder + match[IrregularIdx.IMPERATIVE_STEM]
+	verb = verb_class(word, match)
 	return verb
 
 # removes ambiguities in irregular matches and constructs from the correct match
-# TODO: this can be def be refactored a bit, just don't know how.
-# TODO: make tests to verify that this works
 def disambiguate_verb(match : list , word : str, root : str) -> v.Verb:
 	"""Disambiguates between an irregular verb match and a regular verb, constructing the irregular verb."""
 	verb = v.Verb()
-	# TODO: sklít, zdít, být, stát, stat are disambiguated from verbs present in irregular.txt
-	# OTHER verbs with SUBSTRINGS of irregular are compared if the verb, WITHOUT prefixes, is an exact match.
-	# m = match[0][IrregularIdx.RGX_INFINITIVE]
-	# if m == "být" and word == "být" or word == "nebýt":
-	# 	verb = v.Byt(word)
-	# elif m == "dít" and word == "dít":
-	# 	# set the stems and use the appropriate constructor
-	# 	verb = construct_verb(word, match[0])
+	m = match[0][IrregularIdx.RGX_INFINITIVE]
+	if m == "být" and word == "být" or word == "nebýt":
+		verb = v.Byt(infinitive = word)
+	
+	# cases where the prefix removal got overzealous and they took too much off so there's now a bad root
+	elif ((m == "zát" or m == "zábst") and re.findall("((zát)|(zábst))$", word)) or \
+		 (m == "začít") and re.findall("(začít)$", word) or \
+		 (m == "stít" and root == "tít") or \
+	     (m == "sníst") and re.findall("(sníst)$", word) or \
+		 (m == "spát") and re.findall("(spát)$", word) or \
+		 ((m == "zet") and re.findall("(zet)$", word) and "t" == root) or \
+		 ((m == "stat") and ("tat" == root or re.findall("(zůstat)$", word))):
+		 verb = construct_verb(word, match[0])
+
 	# elif m == "stat" or word == "vstát":
 	# 	# construct 1st
 	# 	verb = construct_verb(word, match[0])
@@ -126,19 +107,17 @@ def disambiguate_verb(match : list , word : str, root : str) -> v.Verb:
 	# 		# construct the 2ND match
 	# 		verb = construct_verb(word, match[1])
 
-	# # regular verbs that have irregular verb as a substring
-	# elif (m == "bát" and re.findall("dbát$", word)) or (m == "tát" and re.findall("ptát$", word)):
-	# 	verb = None
-	# elif (m == "kat" and (root != "kat" or re.findall("sekat$", word)) or (m == "kát" and root != "kát")):
-	# 	verb = None
-	# elif (m == "tít" and re.findall("(dštít|křtít)$", word)):
-	# 	verb = None
-	# elif (m == "stít" and re.findall("mstít|lstít$", word)):
-	# 	verb = None
-	# elif m == "pět" and re.findall("(čpět)$", word):
-	# 	verb = None
-	# else:
-	# 	verb = construct_verb(word, match[0])
+	# regular verbs that have either irregular verb or verb of different class as a substring
+	# (vice versa as well)
+	# aka 'unmatch'
+	elif(m == "dít" and re.findall("((bz)|[bzr](dít))$", word)) or \
+		(m == "pět") and re.findall("(úpět)$", word) or \
+		(m == "klít") and re.findall("(sklít)$", word):
+	 	verb = None
+	elif (m != root ): # non-exact matches are considered regular and are to be classified.
+		verb = None
+	else:
+		verb = construct_verb(word, match[0])
 	return verb
 
 def determine_verb_class(word : str, root : str) -> v.Verb:
@@ -154,9 +133,9 @@ def determine_verb_class(word : str, root : str) -> v.Verb:
 		elif (apat_match := re.search("([aá][bpmz]at)$", word)) and not re.search("(papat|chlámat)", word):
 			verb = v.Class4_apat(word, apat_match[0])
 		elif (cluster_at_match := re.search("((" + vutils.consonant + ")+[pvrlhž][áa]t)$", word)) \
-			and not re.search("(hr[áa]t)|(pl[aá]t)$", word):
+			and not re.search("(hr[áa]t)|([pv]l[aá]t)$", word):
 			verb = v.Class4_cluster(word, cluster_at_match[0])
-		elif long_at_match := re.search("([ltkvsmrř]át)$", word):
+		elif (long_at_match := re.search("([ltkvsmrř]át)$", word)) and not re.findall("([tl]kát)|([p]tát)$", word):
 			verb = v.Class2_at(word, long_at_match[0])
 		else:
 			verb = v.Class1_at(word, at_match[0])
@@ -166,7 +145,9 @@ def determine_verb_class(word : str, root : str) -> v.Verb:
 		if (rit_match := re.search("(řít)$", word)) and not re.search("(zřít)$", word):
 			verb = v.Class4_rit(word, rit_match[0])
 		elif (cluster_match := re.search("((" + vutils.consonant + "){2,}ít)$", root)) \
-			and not re.search("(blít)|(hnít)$", word):
+			and not re.search("((blít)|(hnít))$", word):
+			verb = v.Class3_cluster(word, cluster_match[0])
+		elif (cluster_match := re.search("((zdít)(znít)|(snít))$", word)):
 			verb = v.Class3_cluster(word, cluster_match[0])
 		else:
 			verb = v.Class2_ityt(word, ityt_match[0])

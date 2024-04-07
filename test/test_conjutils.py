@@ -20,12 +20,6 @@ def test_get_irregular_verbs():
         for irregularIdx in range(len(conjutils.IrregularIdx)):
             assert expected[idx][irregularIdx] == irregular_verbs[indices[idx]][irregularIdx]
 
-# tests that the verb class mapping works
-def test_verb_class():
-
-    for class_int in range(1, 5):
-        assert class_int == conjutils.verb_class("", class_int).class_num
-
 # tests that the regex search works for find irregular verb
 def test_find_verb_matches():
     irregular_verbs = conjutils.get_irregular_verbs()
@@ -194,12 +188,12 @@ def test_ityt_cluster_classification():
         assert a.class_num == 3
         assert a.kind() == "Class3_cluster"
 
-    # test with single consonant prefixes: s,l,z,v
-    prefixes = ["v", "s", "l", "z"]
-    infinitives = ["lít", "dít"]
+    # test with single consonant prefixes: s,z,v
+    prefixes = ["v", "s", "z"]
+    infinitives = ["lít"]
     for prefix in prefixes:
         for infinitive in infinitives:
-            a = conjutils.determine_verb_class(prefix+ infinitive, infinitive)
+            a = conjutils.determine_verb_class(prefix + infinitive, infinitive)
             assert a.class_num == 2
             assert a.kind() == "Class2_ityt"
 
@@ -286,3 +280,46 @@ def test_invalid_classification():
     ]
     for bad_infinitive in bad_infinitives:
         assert conjutils.determine_verb_class(bad_infinitive, bad_infinitive) == None
+
+def test_disambiguate_verb():
+    # tests that it (un)classifies verbs correctly
+    infinitives = ["kovat", "abdikovat", "děkovat",
+                    "dít", "bzdít", "bdít","rdít" , "zdít",
+                    "být", "nebýt", "dobýt", "zbýt",
+                    "stít", "mstít", "obelstít",
+                    "ctít", "dštít", "chtít", "křtít", "tít",
+                    "klít","mlít", "plít", "tklít", "sklít",
+                    "sehnat", "hnát", "žehnat",
+                    "bujet", "jet", "dojet", "pájet", "krájet",
+                    "dostat", "chlastat", "zůstat", "stat", "trestat",
+                    "dbát", "bát",
+                    "čpět", "dospět", "lpět", "pět", "trpět", "úpět", "potápět",
+                    "klát", "sklát",
+                    "pnout", "čapnout", "zapnout", "drapnout",
+                    "spát", "zát", "zábst", "zet", "odcházet"]
+    
+    classes = [-1, None, None,
+               -1, None, None, None, None,
+               -1, -1, -1, -1,
+               -1, None, None,
+               None, None, -1, None, -1,
+               -1, -1, -1, None, None,
+               -1, -1, None,
+               None, -1, -1, None, None,
+               -1, None, -1, -1, None,
+               None, -1,
+               None, -1, None, -1, None, None, None,
+               -1, -1,
+               -1, None, -1, None,
+               -1, -1, -1, -1, None]
+
+    irregular_verbs = conjutils.get_irregular_verbs()
+    prefixes = conjutils.get_prefixes()
+    for i in range(0, len(classes)):
+        infinitive = infinitives[i]
+        matches = conjutils.find_verb_matches(infinitive, irregular_verbs)
+        (not_root, root) = conjutils.get_prefix(infinitive, prefixes)
+        if (classes[i] == None):
+            assert conjutils.disambiguate_verb(matches, infinitive, root) == None
+        else:
+            assert conjutils.disambiguate_verb(matches, infinitive, root) != None
