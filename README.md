@@ -15,7 +15,7 @@ This is a verb conjugator for Czech verbs that currently conjugates for 3 tenses
 2. Set up the environment and aliases
     ```
     cd <directory name> (by default czech-verb-conjugator)
-    source env_setup
+    source setup
     ```
 
     This sets up the aliases `tests` and `conjugator`. `tests` runs the `test.sh` script, and `conjugator` runs `conjugator.py`
@@ -39,23 +39,27 @@ This is a verb conjugator for Czech verbs that currently conjugates for 3 tenses
     ```
 
 ## Directories and Files
-```
-2 directories, 13 files
-.
 
+```
+2 directories, 17 files
+.
+├── README.md
+├── conjugator.py
+├── conjugator_utils.py
 ├── data
+│   ├── concrete.txt
+│   ├── get_verbs.sh
 │   ├── irregular.txt
-│   └── prefix.txt
+│   ├── prefix.txt
+│   └── verbs.txt
+├── setup
 ├── test
 │   ├── __init__.py
 │   ├── test.sh
+│   ├── test_conjugator.py
 │   ├── test_conjutils.py
 │   ├── test_verbs.py
 │   └── test_vutils.py
-├── README.md
-├── env_setup
-├── conjugator.py
-├── conjugator_utils.py
 ├── verb_utils.py
 └── verbs.py
 ```
@@ -74,6 +78,8 @@ This is a verb conjugator for Czech verbs that currently conjugates for 3 tenses
 3. This conjugator is naive. It cannot recognize whether the word given is actually an existing Czech verb. That being said, it **will** attempt conjugate non-Czech words such as *racket*, *gadget*, *habit*, *snout* and so forth since they **look** like verbs. This also includes Czech nouns that look like verbs.
 
 4. This conjugator does not conjugate all verbs correctly. However, it is able to conjugate properly for the majority of cases and for common irregular verbs.
+
+5. All verbs are considered by default imperfective. This may lead to incorrect present + future conjugations.
  
 
 # Further information:
@@ -85,11 +91,9 @@ All information, that was not initally from my own knowledge of the Czech langua
 5. https://ssjc.ujc.cas.cz/ (requires the archaic form of the infinitive to search properly (the -i after the t in most cases))
 
 *************************************************************
-# Future improvements/plans:
+# Further work:
 1. adding passive participle conjugation
 2. adding transgressive conjugation (present and past)
 3. adding verbal noun/adjectival form
-4. adding future tense form if imperfective
-5. determining the verb's aspect
-6. seperation of conditional mood into present and past conditional mood
-7. verb of motion determination
+4. determining the verb's aspect
+5. seperation of conditional mood into present and past conditional mood

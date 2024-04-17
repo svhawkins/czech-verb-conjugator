@@ -330,7 +330,7 @@ def test_perfective_conjugation():
 
     # stuff from just __init__
     assert byt._is_negative == False
-    assert v.get_motion(byt._is_motion) == False
+    assert byt._is_concrete == False
     assert byt._is_perfective == True
     assert byt._tense_to_auxiliary[v.Tense.FUTURE] == ("", "", "", "", "", "")
     assert byt._tense_to_ending[v.Tense.FUTURE] == expected_future
@@ -346,11 +346,11 @@ def test_perfective_conjugation():
 def test_motion_conjugation():
     expected_future= ("pojsem", "pojseš/jsi", "poje", "pojsme", "pojste", "pojsou")
     expected_present = ("jsem", "jseš/jsi", "je", "jsme", "jste", "jsou")
-    byt = v.Byt("být", is_motion = (True, "po"))
+    byt = v.Byt("být", is_concrete = True)
 
     # stuff from just __init__
     assert byt._is_negative == False
-    assert v.get_motion(byt._is_motion) == True
+    assert byt._is_concrete == True
     assert byt._is_perfective == False
     assert byt._present_endings == expected_present
     assert byt._tense_to_auxiliary[v.Tense.FUTURE] == v.Verb._empty
@@ -391,8 +391,7 @@ def test_class1_at_short_a():
     assert a.imperative_stem == "bej"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -426,8 +425,7 @@ def test_class1_at_long_a():
     assert a.imperative_stem == "bej"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -462,8 +460,7 @@ def test_class2_yt():
     assert a.imperative_stem == "byj"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -494,8 +491,7 @@ def test_class2_it():
     assert a.imperative_stem == "bij"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -556,8 +552,7 @@ def test_class2_ovat():
     assert a.imperative_stem == "buj"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -595,8 +590,7 @@ def test_class3_it():
     assert a.imperative_stem == "skoč"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -628,8 +622,7 @@ def test_class3_et_hard_e():
     assert a.imperative_stem == "mruč"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -661,8 +654,7 @@ def test_class3_et_soft_e():
     assert a.imperative_stem == "duň"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -787,8 +779,7 @@ def test_class4_nout_with_vowel():
     assert a.imperative_stem == "bni"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -819,8 +810,7 @@ def test_class4_nout_without_vowel():
     assert a.imperative_stem == "beň"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -852,8 +842,7 @@ def test_class4_st():
     assert a.imperative_stem == "baď"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -882,8 +871,7 @@ def test_class4_st():
     assert a.imperative_stem == "boď"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -912,8 +900,7 @@ def test_class4_st():
     assert a.imperative_stem == "huď"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -942,8 +929,7 @@ def test_class4_st():
     assert a.imperative_stem == "přeď"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -976,8 +962,7 @@ def test_class4_zt():
     assert a.imperative_stem == "baz"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1009,8 +994,7 @@ def test_class4_ct():
     assert a.imperative_stem == "bač"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1040,8 +1024,7 @@ def test_class4_ct():
     assert a.imperative_stem == "seč"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1071,8 +1054,7 @@ def test_class4_ct():
     assert a.imperative_stem == "tluč"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1105,8 +1087,7 @@ def test_class_4_rit():
     assert a.imperative_stem == "umři"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1137,8 +1118,7 @@ def test_class2_out():
     assert a.imperative_stem == "pluj"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1169,8 +1149,7 @@ def test_class2_at():
     assert a.imperative_stem == "hraj"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1200,8 +1179,7 @@ def test_class2_at():
     assert a.imperative_stem == "hřej"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1239,8 +1217,7 @@ def test_class3_cluster():
     assert a.imperative_stem == "dšti"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1280,8 +1257,7 @@ def test_class4_apat():
     assert a.imperative_stem == "kaž"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
@@ -1319,8 +1295,7 @@ def test_class4_cluster():
     assert a.imperative_stem == "zvi"
     assert a._is_negative == False
     assert a._is_perfective == False
-    assert v.get_motion(a._is_motion) == False
-    assert v.get_motion_prefix(a._is_motion) == ""
+    assert a._is_concrete == False
 
     # indices (0-4): present, past, future, imperative, conditional
     expected_conjugations = [expect_present, expected_past, expected_future, expected_imperative, expected_conditional]
