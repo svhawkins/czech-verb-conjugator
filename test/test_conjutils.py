@@ -320,6 +320,6 @@ def test_disambiguate_verb():
         matches = conjutils.find_verb_matches(infinitive, irregular_verbs)
         (not_root, root) = conjutils.get_prefix(infinitive, prefixes)
         if (classes[i] == None):
-            assert conjutils.disambiguate_verb(matches, infinitive, root) == None
+            assert conjutils.disambiguate_verb(matches, infinitive, root)[0] == None
         else:
-            assert conjutils.disambiguate_verb(matches, infinitive, root) != None
+            assert conjutils.disambiguate_verb(matches, infinitive, root)[0] != None

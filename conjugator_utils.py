@@ -120,11 +120,11 @@ def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool 
 		 verb = construct_verb(word, match[0], is_concrete)
 
 	# stat can has multiple matches
-	elif m == "stat" or re.findall("(vstát)$", word):
+	elif (m == "stat" or word == "vstát" or word == "nevstát") and (root == "tat" or root == "tát"):
 		# construct 1st
 		verb = construct_verb(word, match[0], is_concrete)
 	elif m == "stát":
-		if word == "stát":
+		if word == "stát" or word == "nestát":
 			# construct both matches
 			verb2 = construct_verb(word, match[1], is_concrete)
 			verb = construct_verb(word, match[0], is_concrete)
