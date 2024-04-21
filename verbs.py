@@ -176,6 +176,10 @@ class Verb:
 			self._tense_to_ending[Tense.FUTURE] = self._present_endings
 			self._tense_to_auxiliary[Tense.FUTURE] = self._empty
 			self._tense_to_ending[Tense.PRESENT] = self._empty
+		else: # I don't know why but python was messing this up without the else. mixing up present and future.
+			self._tense_to_ending[Tense.FUTURE] = self._empty
+			self._tense_to_auxiliary[Tense.FUTURE] = self._future_auxiliary
+			self._tense_to_ending[Tense.PRESENT] = self._present_endings 
 		
 		# usually verbs of motion take a future prefix instead an auxiliary
 		# these are always imperfective, so the perfective future override need not apply.
@@ -184,6 +188,7 @@ class Verb:
 			future_stem = self.present_stem[2:] if self._is_negative else self.present_stem
 			self._tense_to_auxiliary[Tense.FUTURE] = self._empty
 			self._tense_to_ending[Tense.FUTURE] = self._present_endings
+
 
 		
 		self._stems = [ self.present_stem, self.past_stem, future_stem, self.imperative_stem, self.past_stem ]
@@ -490,16 +495,19 @@ class Class3_itet(Class3):
 		# the actually exceptional-but-still-regular cases are here:
 		if re.search("slzet$", self.infinitive):
 			self.imperative_stem = self.stem + "ej"
-		elif re.search("(pustit|půjčit)$", self.infinitive):
+		elif re.search("(půjčit)$", self.infinitive):
 			self.imperative_stem = self.stem
 		elif re.search("(chvět|ouštět)$", self.infinitive):
 			self.imperative_stem = self.present_stem + "ěj"
 		elif re.search("(skřípět)$", self.infinitive):
 			self.imperative_stem = vutils.shorten(self.stem)
-		elif re.search("(lpět)$", self.infinitive):
-			self.imperative_stem = self.stem + "i"
+		elif re.search("(lpět|prstit|šustit|hustit)$", self.infinitive):
+			self.imperative_stem = vutils.fix_spelling(self.stem + "i")
 		
 		# the actual special cases
+		# 0. -stit endings get softened
+		elif re.search("(stit)$", self.infinitive):
+			self.imperative_stem = vutils.shorten(self.stem)
 
 		# 1. neutral consonant with -ět: this gets -ěj
 		elif re.search( vutils.neutral_consonant + "ět$", self.infinitive)\
@@ -570,7 +578,10 @@ class Class4_nout(Class4):
 			self.imperative_stem = self.stem + "ni"
 		self.past_stem = self.stem + "nul"
 		if not (vutils.isvowel(self.past_stem[0]) or not vutils.contains_vowel(self.past_stem[:-len(self.ending)])):
-			self.past_stem = self.stem + "l" # ie "tiskl"
+			if self.stem[-1] == "e":
+				self.past_stem = self.stem[:-1] + "n" +  "ě" + "l"
+			else:
+				self.past_stem = self.stem + "l" # ie "tiskl"
 			
 		# update stems
 		future_stem = self.infinitive[2:] if self.infinitive[:2] == "ne" else self.infinitive
@@ -790,7 +801,7 @@ class Class3_cluster(Class3):
 				self.past_stem = self.stem + "ěl"
 
 		# case-by-case basis
-		if re.search("^((zdít)|(sklít)|(mnít))", self.infinitive): # FIXME: use the root + ending other than whole infinitive
+		if re.search("^((zdít)|(sklít)|(mnít))", self.infinitive):
 			self.past_stem = self.stem + "il" # the root/non-prefix infinitive is corrected during disambiguation.
 		elif re.search("(znít)$", self.infinitive):
 			self.past_stem = self.stem + "ěl"

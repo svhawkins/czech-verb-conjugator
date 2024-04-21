@@ -197,9 +197,7 @@ def test_regular_conjugation():
              "pocházet", # class 3
              "krást"] # class4_st
     
-    # TODO
     expected_conjugations = [ [] for verb in verbs]
-    # FIXME: future not correct
     expected_conjugations[0] = [["jsem", "jseš/jsi", "je", "jsme", "jste", "jsou"], # present
                             ["byl/a jsem", "byl/a jsi/jseš", "byl/a/o", "byli/y jsme", "byli/y jste", "byli/y/a"], # past
                             ["budu", "budeš", "bude", "budeme", "budete", "budou"], # future
@@ -218,15 +216,12 @@ def test_regular_conjugation():
                             ["", "sleduj", "", "sledujme", "sledujte", ""], # imperative
                             ["sledoval/a bych", "sledoval/a bys", "sledoval/a/o by", "sledovali/y bychom", "sledovali/y byste", "sledovali/y/a by"], # conditional
                            ]
-    # FIXME: future
     expected_conjugations[3] = [["nechápu", "nechápeš", "nechápe", "nechápeme", "nechápete", "nechápou"], # present
                         ["nechápal/a jsem", "nechápal/a jsi/jseš", "nechápal/a/o", "nechápali/y jsme", "nechápali/y jste", "nechápali/y/a"], # past
                         ["nebudu chápat", "nebudeš chápat", "nebude chápat", "nebudeme chápat", "nebudete chápat", "nebudou chápat"], # future
                         ["", "nechápej", "", "nechápejme", "nechápejte", ""], # imperative
                         ["nechápal/a bych", "nechápal/a bys", "nechápal/a/o by", "nechápali/y bychom", "nechápali/y byste", "nechápali/y/a by"], # conditional
                         ]
-    
-    # FIXME: future
     expected_conjugations[4] = [["beru", "bereš", "bere", "bereme", "berete", "berou"], # present
                         ["bral/a jsem", "bral/a jsi/jseš", "bral/a/o", "brali/y jsme", "brali/y jste", "brali/y/a"], # past
                         ["budu brát", "budeš brát", "bude brát", "budeme brát", "budete brát", "budou brát"], # future
@@ -258,10 +253,10 @@ def test_regular_conjugation():
                         ["myl/a bych", "myl/a bys", "myl/a/o by", "myli/y bychom", "myli/y byste", "myli/y/a by"], # conditional
                         ]
     expected_conjugations[9] = [["zapomenu", "zapomeneš", "zapomene", "zapomeneme", "zapomenete", "zapomenou"], # present
-                        ["zapomenul/a jsem", "zapomenul/a jsi/jseš", "zapomenul/a/o", "zapomenuli/y jsme", "zapomenuli/y jste", "zapomenuli/y/a"], # past
+                        ["zapomněl/a jsem", "zapomněl/a jsi/jseš", "zapomněl/a/o", "zapomněli/y jsme", "zapomněli/y jste", "zapomněli/y/a"], # past
                         ["budu zapomenout", "budeš zapomenout", "bude zapomenout", "budeme zapomenout", "budete zapomenout", "budou zapomenout"], # future
                         ["", "zapomeň", "", "zapomeňme", "zapomeňte", ""], # imperative
-                        ["zapomenul/a bych", "zapomenul/a bys", "zapomenul/a/o by", "zapomenuli/y bychom", "zapomenuli/y byste", "zapomenuli/y/a by"], # conditional
+                        ["zapomněl/a bych", "zapomněl/a bys", "zapomněl/a/o by", "zapomněli/y bychom", "zapomněli/y byste", "zapomněli/y/a by"], # conditional
                         ]
     expected_conjugations[10] = [["nepluji/u", "nepluješ", "nepluje", "neplujeme", "neplujete", "neplují"], # present
                         ["neplul/a jsem", "neplul/a jsi/jseš", "neplul/a/o", "nepluli/y jsme", "nepluli/y jste", "nepluli/y/a"], # past
@@ -282,8 +277,5 @@ def test_regular_conjugation():
                     ["kradl/a bych", "kradl/a bys", "kradl/a/o by", "kradli/y bychom", "kradli/y byste", "kradli/y/a by"], # conditional
                     ]
     for i in range(len(verbs)):
-        # FIXME: future tenses not working...
-        if i == 0 or i == 3 or i == 4 or i == 6 or i == 7 or i == 9 or i == 11 or i == 12:
-            continue
         (verb, verb2) = conjugate_verb(verbs[i])
         assert verb.get_table() == expected_conjugations[i]

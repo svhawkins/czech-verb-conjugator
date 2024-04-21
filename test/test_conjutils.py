@@ -69,13 +69,8 @@ def test_get_prefix():
  #### VERB CLASSIFICAITON TESTS ####
 def test_at_class1_classification():
     infinitives = ["lat", "kat", "plat", "vat", "smat", "hrat", "hřat", "sat", "tat",
-                   "kázát", "mazát", 
-                   #"klamát", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC
-                   "lapát", 
-                   #"lámát", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC
-                   "chápát", "tápát", "ťapát",
-                   #"chlámat", # FIXME: this is being confused for class2 due to m. class2 only triggered with MONOSYLLABIC 
-                   "papat"
+                   "kázát", "mazát", "lapát", "chápát", "tápát", "ťapát","chlámat", "papat"
+                   "lámát", "klamát"
                    ]
     for i in range(len(infinitives)):
         a = conjutils.determine_verb_class(infinitives[i], infinitives[i])
