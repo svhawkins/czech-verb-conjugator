@@ -541,6 +541,16 @@ class Class4(Verb):
 		super().__init__(infinitive, ending, is_perfective, is_concrete, stems)
 		self.class_num = 4
 
+	# some irregular verbs require this
+	def conjugate(self, tense_idx : int = len(Tense), person_idx : int = len(Person)):
+		"""Extends Verb's conjugate but updates with vowel changes to the imperative plural endings."""
+		super().conjugate(tense_idx, person_idx)
+
+		# apply imperative corrections if stem is -ni
+		if self.imperative_stem[-2:] == "ni" or self.imperative_stem[-2:] == "mi":
+			self._conjugation_table[Tense.IMPERATIVE][Person.FIRST_PL] = self.imperative_stem[:-1] + "ěme"
+			self._conjugation_table[Tense.IMPERATIVE][Person.SECOND_PL] = self.imperative_stem[:-1] + "ěte"
+
 	def kind(self) -> str:
 		"""Return type of class as string"""
 		return "Class4"

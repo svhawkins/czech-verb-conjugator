@@ -52,3 +52,4 @@ skákat,4,skáč,skákal,skákej
 zet,2,zej,zel,zej
 zábst,4,zeb,zábl,zeb
 zát,2,zej,zel,zej
+růst,4,rost,rostl,rosť

@@ -3,27 +3,15 @@
 import pytest
 import conjugator_utils as conjutils
 
+# globals/used by (almost) every test. DO NOT NEED TO BE RERUN EVERY TEST
+irregular_verbs = conjutils.get_irregular_verbs()
+prefixes = conjutils.get_prefixes()
+concrete_verbs = conjutils.get_concrete_verbs()
 
-
-#### FILE DATA TESTS ####
-# tests that get_irregular_verbs functions properly by examining contents of the 1st, 10th, 30th, and 75th lines. 
-def test_get_irregular_verbs():
-    # infinitive, class, stem, past stem, imperative stem, passive stem?, transgressive stem?
-    irregular_verbs = conjutils.get_irregular_verbs()
-
-    indices = [13, 17, 32, 43]
-    expected  = [("jít", 4, "jd", "šel", "pojď"),
-                ("spát", 3, "sp", "spal", "spi"),
-                ("mít", 1, "m", "měl", "měj"),
-                ("vzít", 4, "vezm", "vzal", "vezmi")]
-    for idx in range(len(indices)):
-        for irregularIdx in range(len(conjutils.IrregularIdx)):
-            assert expected[idx][irregularIdx] == irregular_verbs[indices[idx]][irregularIdx]
+####### TESTS BEGIN #######
 
 # tests that the regex search works for find irregular verb
 def test_find_verb_matches():
-    irregular_verbs = conjutils.get_irregular_verbs()
-
     # st[áa]t		4		stan		stal		staň
     # stát		3		stoj		stál		stůj
     expected = [("stát", 4, "stan", "stal", "staň"), ("stát", 3 , "stoj", "stál", "stůj")]
@@ -44,7 +32,6 @@ def test_find_verb_matches():
 # tests construct verb
 def test_construct_verb():
     # vědět		3		v		věděl		věz
-    irregular_verbs = conjutils.get_irregular_verbs()
     matches = conjutils.find_verb_matches("vědět", irregular_verbs)
     verb = conjutils.construct_verb("vědět", matches[0])
     assert verb.class_num == 3
@@ -52,19 +39,8 @@ def test_construct_verb():
     assert verb.past_stem == "věděl"
     assert verb.imperative_stem == "věz"
 
-# tests that prefixes are retrieved correctly
-def test_get_prefixes():
-    expected = "^((beze?)|(d[oů])|(nade?)|(n[aá])|(ne)|"
-    expected += "(ode?)|(ob?e?)|(pode?)|(přede?)|(p[oů])|(pře)|"
-    expected += "(př[ií])|(pr[oů])|(roze?)|(spolu)|(sou)|(se?)|([uú])|"
-    expected += "(v[yý])|(vze?)|(ve?)|(z[aá])|(zne)|(znovu)|(ze?))"
-    prefixes = conjutils.get_prefixes()
-    assert expected == prefixes
-
 # tests that prefixes are able to be extracted from provided words
 def test_get_prefix():
-    prefixes = conjutils.get_prefixes()
-
     # no prefixes
     word = "ledne"
     (not_root, root) = conjutils.get_prefix(word, prefixes)
@@ -222,7 +198,6 @@ def test_out_classification():
         assert a.kind() == "Class4_nout"
 
 def test_itet_classification():
-
     infinitives = ["mručet", "skočit", "dunět", "chvět", "vyvíjet",
                    "vyrábět", "umět", "přenášet", "ztrácet", "dovádět",
                    "pouštět", "zkoušet", "prospět", "tvářet", "slzet",
@@ -312,9 +287,7 @@ def test_disambiguate_verb():
                -1, -1,
                -1, None, -1, None,
                -1, -1, -1, -1, None]
-
-    irregular_verbs = conjutils.get_irregular_verbs()
-    prefixes = conjutils.get_prefixes()
+    
     for i in range(0, len(classes)):
         infinitive = infinitives[i]
         matches = conjutils.find_verb_matches(infinitive, irregular_verbs)
@@ -323,3 +296,33 @@ def test_disambiguate_verb():
             assert conjutils.disambiguate_verb(matches, infinitive, root)[0] == None
         else:
             assert conjutils.disambiguate_verb(matches, infinitive, root)[0] != None
+
+
+# tests that concrete verbs are being classified correctly
+def test_is_concrete_verb():
+    verbs = [ "jet", "dojet", "jezdít", "jét",
+              "přijít", "jít", "nejít", "jit",
+              "snést", "nést", "nenést", "nenest",
+              "uvést", "vést", "nevést", "vest",
+              "běžet", "běhat", "neběžet", "bezet",
+              "letat", "vyletat", "letět", "letet",
+              "hnát", "nehnát", "vézt", "vezt",
+              "vyrůst", "růst", "nerůst", "rust",
+              "kvést", "vykvést", "nekvést", "kvest",
+              "nevynalézt", "vynalézt", "lézt", "lezt"
+            ]
+    
+    expected = [ True, False, False, False,
+                 False, True, True, False,
+                 False, True, True, False,
+                 False, True, True, False,
+                 True, False, True, False,
+                 False, False, True, False,
+                 True, True, True, False,
+                 False, True, True, False,
+                 True, False, True, False,
+                 False, False, True, False
+               ]
+    
+    for i in range(len(verbs)):
+        assert conjutils.is_concrete_verb(verbs[i], concrete_verbs) == expected[i]

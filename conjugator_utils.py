@@ -2,7 +2,9 @@
 Conjugation Utilites
 
 Provides functions to ease in finding a verb's
-proper Verb class.
+proper Verb class as well as other other class-agnostic features, which affect tense conjugations:
+	1. concrete or abstract
+	2. verbal aspect (TODO)
 """
 
 import re
@@ -116,11 +118,12 @@ def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool 
 		 (m == "vědět") and re.findall("(vědět)$", word) or \
 		 ((m == "zet") and re.findall("(zet)$", word) and "t" == root) or \
 		 ((m == "stat") and ("tat" == root or re.findall("(zůstat)$", word))) or \
+		 ((m == "skákat") and ("kákat" == root or re.findall("(skákat)$", word))) or \
 	     ((m == "vzít") and ("ít" == root or re.findall("(vzít)$", word))):
 		 verb = construct_verb(word, match[0], is_concrete)
 
-	# stat can has multiple matches
-	elif (m == "stat" or word == "vstát" or word == "nevstát") and (root == "tat" or root == "tát"):
+	# stát has multiple matches
+	elif ((m == "stat" or re.findall("(((při)|(v))st[aá]t)$", word)) and (root == "tat" or root == "tát")):
 		# construct 1st
 		verb = construct_verb(word, match[0], is_concrete)
 	elif m == "stát":
