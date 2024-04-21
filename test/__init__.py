@@ -1,4 +1,4 @@
-# tests all src utilities
+# tests all utilities and classes
 
 
 # from directory.fileName import className

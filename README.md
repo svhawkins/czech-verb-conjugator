@@ -80,6 +80,9 @@ This is a verb conjugator for Czech verbs that currently conjugates for 3 tenses
 4. This conjugator does not conjugate all verbs correctly. However, it is able to conjugate properly for the majority of cases and for common irregular verbs.
 
 5. All verbs are considered by default imperfective. This may lead to incorrect present + future conjugations.
+
+6. Some verbs ending in *-stit* have multiple imperative stems. They by default use the shortened ending: *sť*.
+There are few exceptions: *prstit*, *šustit*, and *hustit* take *-sti*.
  
 
 # Further information:

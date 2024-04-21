@@ -2,7 +2,9 @@
 Conjugation Utilites
 
 Provides functions to ease in finding a verb's
-proper Verb class.
+proper Verb class as well as other other class-agnostic features, which affect tense conjugations:
+	1. concrete or abstract
+	2. verbal aspect (TODO)
 """
 
 import re
@@ -85,18 +87,18 @@ def is_concrete_verb(word : str, verbs : list) -> bool:
 	non_negative_verb = word[2:] if word[:2] == "ne" else word
 	return non_negative_verb in verbs
 
-def verb_class(word : str, match : tuple, is_concrete : bool = False) -> v.Verb:
+def verb_class(word : str, match : tuple, is_concrete : bool = False, is_perfective : bool = False) -> v.Verb:
 	"""Return corresponding base class Verb (Class 1-4 ONLY) from provided <class_num>"""
 	return vutils.get_val_from_dict(int_to_verb_class,
-								 	match[IrregularIdx.CONJUGATION_CLASS])(infinitive = word, stems = match, is_concrete = is_concrete)
+								 	match[IrregularIdx.CONJUGATION_CLASS])(infinitive = word, stems = match, is_concrete = is_concrete, is_perfective = is_perfective)
 
-def construct_verb(word : str, match : tuple, is_concrete : bool = False) -> v.Verb:
+def construct_verb(word : str, match : tuple, is_concrete : bool = False, is_perfective : bool = False) -> v.Verb:
 	"""Construct a Verb object manually by overwriting stem values from __init__()."""
-	verb = verb_class(word, match, is_concrete)
+	verb = verb_class(word, match, is_concrete, is_perfective)
 	return verb
 
 # removes ambiguities in irregular matches and constructs from the correct match
-def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool = False) -> tuple:
+def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool = False, is_perfective : bool = False) -> tuple:
 	"""
 	Disambiguates between an irregular verb match and a regular verb, constructing the irregular verb.
 	Returns tuple since stát can have 2 conjugations.
@@ -105,7 +107,7 @@ def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool 
 	verb2 = None
 	m = match[0][IrregularIdx.RGX_INFINITIVE]
 	if m == "být" and word == "být" or word == "nebýt":
-		verb = v.Byt(infinitive = word, is_concrete = is_concrete)
+		verb = v.Byt(infinitive = word, is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# cases where the prefix removal got overzealous and they took too much off so there's now a bad root
 	elif ((m == "zát" or m == "zábst") and re.findall("((zát)|(zábst))$", word)) or \
@@ -116,21 +118,22 @@ def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool 
 		 (m == "vědět") and re.findall("(vědět)$", word) or \
 		 ((m == "zet") and re.findall("(zet)$", word) and "t" == root) or \
 		 ((m == "stat") and ("tat" == root or re.findall("(zůstat)$", word))) or \
+		 ((m == "skákat") and ("kákat" == root or re.findall("(skákat)$", word))) or \
 	     ((m == "vzít") and ("ít" == root or re.findall("(vzít)$", word))):
-		 verb = construct_verb(word, match[0], is_concrete)
+		 verb = construct_verb(word, match[0], is_concrete, is_perfective)
 
-	# stat can has multiple matches
-	elif (m == "stat" or word == "vstát" or word == "nevstát") and (root == "tat" or root == "tát"):
+	# stát has multiple matches
+	elif ((m == "stat" or re.findall("(((při)|(v))st[aá]t)$", word)) and (root == "tat" or root == "tát")):
 		# construct 1st
-		verb = construct_verb(word, match[0], is_concrete)
+		verb = construct_verb(word, match[0], is_concrete, is_perfective)
 	elif m == "stát":
 		if word == "stát" or word == "nestát":
 			# construct both matches
-			verb2 = construct_verb(word, match[1], is_concrete)
-			verb = construct_verb(word, match[0], is_concrete)
+			verb2 = construct_verb(word, match[1], is_concrete, is_perfective)
+			verb = construct_verb(word, match[0], is_concrete, is_perfective)
 		else:
 			# construct the 2ND match
-			verb = construct_verb(word, match[1], is_concrete)
+			verb = construct_verb(word, match[1], is_concrete, is_perfective)
 
 	# regular verbs that have either irregular verb or verb of different class as a substring
 	# (vice versa as well)
@@ -142,56 +145,57 @@ def disambiguate_verb(match : list , word : str, root : str, is_concrete : bool 
 	elif (m != root ): # non-exact matches are considered regular and are to be classified.
 		verb = None
 	else:
-		verb = construct_verb(word, match[0], is_concrete)
+		verb = construct_verb(word, match[0], is_concrete, is_perfective)
 	return (verb, verb2)
 
-def determine_verb_class(word : str, root : str, is_concrete : bool = False) -> v.Verb:
+def determine_verb_class(word : str, root : str, is_concrete : bool = False, is_perfective : bool = False) -> v.Verb:
 	"""Construct the proper Verb class based on the ending of <root> formed from <word>."""
 	verb  = None
 
-	# just as a word of note, all the matches have the [0] subscription in order to actually
-	# access the item within the Match object.
+	# NOTE: all the matches have the [0] subscription to access item in Match object/array
 	# 1. check for -at/-át ending
 	if at_match := re.search("([aá]t)$", word):
 		if (ovat_match := re.search("(ovat)$", word)) and not re.search("chovat$", word):
-			verb = v.Class2_ovat(word, ovat_match[0], is_concrete = is_concrete)
+			verb = v.Class2_ovat(word, ovat_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		elif (apat_match := re.search("([aá][bpmz]at)$", word)) and not re.search("(papat|chlámat)", word):
-			verb = v.Class4_apat(word, apat_match[0], is_concrete = is_concrete)
+			verb = v.Class4_apat(word, apat_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		elif (cluster_at_match := re.search("((" + vutils.consonant + ")+[pvrlhž][áa]t)$", word)) \
 			and not re.search("(hr[áa]t)|([pv]l[aá]t)$", word):
-			verb = v.Class4_cluster(word, cluster_at_match[0], is_concrete = is_concrete)
-		elif (long_at_match := re.search("([ltkvsmrř]át)$", word)) and not re.findall("([tl]kát)|([p]tát)$", word):
-			verb = v.Class2_at(word, long_at_match[0], is_concrete = is_concrete)
+			verb = v.Class4_cluster(word, cluster_at_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
+		elif (long_at_match := re.search("([ltkvsmrř]át)$", word)) and  \
+			 (not re.findall("([tl]kát)|([p]tát)$", word)) and \
+			 (vutils.Syllables(root).is_monosyllabic() == True):
+			verb = v.Class2_at(word, long_at_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		else:
-			verb = v.Class1_at(word, at_match[0], is_concrete = is_concrete)
+			verb = v.Class1_at(word, at_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# 2. check for -ít/-ýt ending
 	elif ityt_match := re.search("([íý]t)$", word):
 		if (rit_match := re.search("(řít)$", word)) and not re.search("(zřít)$", word):
-			verb = v.Class4_rit(word, rit_match[0], is_concrete = is_concrete)
+			verb = v.Class4_rit(word, rit_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		elif (cluster_match := re.search("((" + vutils.consonant + "){2,}ít)$", root)) \
 			and not re.search("((blít)|(hnít))$", word):
-			verb = v.Class3_cluster(word, cluster_match[0], is_concrete = is_concrete)
+			verb = v.Class3_cluster(word, cluster_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		elif (cluster_match := re.search("((zdít)(znít)|(snít))$", word)):
-			verb = v.Class3_cluster(word, cluster_match[0], is_concrete = is_concrete)
+			verb = v.Class3_cluster(word, cluster_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		else:
-			verb = v.Class2_ityt(word, ityt_match[0], is_concrete = is_concrete)
+			verb = v.Class2_ityt(word, ityt_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# 3. check for -out ending
 	elif out_match := re.search("(out)$", word):
 		if nout_match := re.search("(nout)$", word):
-			verb = v.Class4_nout(word, nout_match[0], is_concrete = is_concrete)
+			verb = v.Class4_nout(word, nout_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 		else:
-			verb = v.Class2_out(word, out_match[0], is_concrete = is_concrete)
+			verb = v.Class2_out(word, out_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# 4. check for -it/-et/-ět ending
 	elif itet_match := re.search("([ieě]t)$", word):
-		verb = v.Class3_itet(word, itet_match[0], is_concrete = is_concrete)
+		verb = v.Class3_itet(word, itet_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# 5. check for -ct/-st/-zt endings
 	elif szct_match := re.search("((" + vutils.long_vowel + ")[csz]t)$", word):
 		thematic_consonant = szct_match[0][-2] # get the consonant before the -t
-		verb = (vutils.get_val_from_dict(consonant_to_class, thematic_consonant))(word, szct_match[0], is_concrete = is_concrete)
+		verb = (vutils.get_val_from_dict(consonant_to_class, thematic_consonant))(word, szct_match[0], is_concrete = is_concrete, is_perfective = is_perfective)
 	
 	# 6. no match has been found...
 	else:

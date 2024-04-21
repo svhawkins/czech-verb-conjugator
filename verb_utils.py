@@ -52,8 +52,8 @@ def get_val_from_dict(d : dict, key : any) -> any:
 # functions to change specific letters/digraphs
 def get_short_vowel(long_vowel : str) -> str:
 	"""Retrieve the corresponding short vowel of <long_vowel>."""
-	# FIXME: there is ambiguity from key 'u' since it can lead to either long ou or ú. for now it is ou->u only.
-	# ú is only present at the beginning of words
+	# NOTE: there is ambiguity from key 'u' since it can lead to either long ou or ú. for now it is ou->u only.
+	# ú->u is rare but occurs in some -it verbs where ú is part of the root and not a prefix.
 	return get_val_from_dict(long_to_short, long_vowel)
 
 def get_long_vowel(short_vowel : str) -> str:
@@ -62,7 +62,7 @@ def get_long_vowel(short_vowel : str) -> str:
 
 def get_hard_consonant(soft_consonant : str) -> str:
 	"""retrieve the corresponding hard consonant of <soft_consonant>."""
-	# FIXME: there is ambiguity from key 'z' since it can lead to either hard g or h. for now it is z->h only.
+	# NOTE: there is ambiguity from key 'z' since it can lead to either hard g or h. for now it is z->h only.
 	# g is mostly in foreign words/loanwords anyway
 	return get_val_from_dict(soft_to_hard, soft_consonant)
 
@@ -170,6 +170,8 @@ class Syllables:
 	Methods:
 		inspect_syllable(self, idx : int) -> str
 		is_syllabic(self, idx : int) -> bool
+		is_monosyllablic(self) -> bool
+		is_polysyllabic(self) -> bool
 		contains_cluster(self, idx : int) -> bool
 		contains_vowel(self, idx : int) -> bool
 	"""
@@ -248,3 +250,11 @@ class Syllables:
 	def contains_vowel(self, idx : int) -> bool:
 		"""Determine if syllable at <idx> contains any vowels."""
 		return contains_vowel(self.inspect_syllable(idx))
+	
+	def is_monosyllabic(self) -> bool:
+		"""Determine if there is only one syllable."""
+		return len(self.syllable_list) == 1
+	
+	def is_polysyllabic(self) -> bool:
+		"""Determine if there are multiple syllables."""
+		return (len(self.syllable_list)) > 1

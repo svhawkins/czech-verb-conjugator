@@ -16,13 +16,14 @@ while(1):
 	is_concrete = conjutils.is_concrete_verb(word, concrete_verbs)
 
 	# TODO: determine if perfective
+	is_perfective = False
 
 	verb = None
 	verb2 = None
 	if matches != []:
-		(verb, verb2) = conjutils.disambiguate_verb(matches, word, root, is_concrete)
+		(verb, verb2) = conjutils.disambiguate_verb(matches, word, root, is_concrete, is_perfective)
 	if not verb:
-		verb = conjutils.determine_verb_class(word, root, is_concrete)
+		verb = conjutils.determine_verb_class(word, root, is_concrete, is_perfective)
 	if verb:
 		verb.conjugate()
 		# TODO: display the conjugation (prettily)
