@@ -94,71 +94,6 @@ def contains_vowel(string : str) -> bool:
 	"""Determines whether <string> contains any vowels."""
 	return get_vowel(string) != ""
 
-# regex-conversion mappings
-regex_conversion = {"soft" : (soft_consonant, get_hard_consonant), "hard" : ("(ch)|" + hard_consonant, get_soft_consonant),
-					"short" : (short_vowel, get_long_vowel), "long" : (long_vowel, get_short_vowel) }
-def get_pattern_function(pattern_type : str) -> tuple:
-	"""Return corresponding regex pattern and conversion function as a tuple[str, function]."""
-	ret = get_val_from_dict(regex_conversion, pattern_type)
-	return ret if ret != pattern_type else ("^$", None)
-
-# BUG: converts 2nd-to last and so forth if others don't prior match pattern.
-def convert_last_match(word : str, pattern_type : str) -> str:
-	"""Replace last occurring match of <pattern_type> in <word> with converted value based from <pattern_type>."""
-	ret = word
-	(pattern, conversion) = get_pattern_function(pattern_type)
-
-	# separate into phonemes
-	phonemes  = [match[0] for match in re.findall(phoneme, word)]
-
-	# find last occurrence of the pattern within phonemes to substitute
-	phonemes.reverse()
-	match = re.search(pattern, "".join(phonemes))
-	if match is not None:
-		match = match[0]
-		if match in phonemes:
-			idx = phonemes.index(match) 
-			phonemes[idx] = conversion(match)
-			phonemes.reverse()
-			ret = "".join(phonemes)
-	return ret
-						  
-def lengthen(stem : str) -> str:
-	"""Lengthen short vowel in <stem>."""
-	return convert_last_match(stem, "short")
-
-def shorten(stem : str) -> str:
-	"""Shorten long vowel in <stem>."""
-	return convert_last_match(stem, "long")
-
-def soften(stem : str) -> str:
-	"""Soften the final hard consonant in <stem>."""
-	return convert_last_match(stem, "hard")
-
-def harden(stem : str) -> str:
-	"""Harden the final soft consonant in <stem>."""
-	return convert_last_match(stem, "soft")
-
-def fix_spelling(word : str) -> str:
-	"""
-	Fix spelling of certain soft consonants when alongside certain soft vowels.
-
-	The soft consonants ď, ť, and ň, are made hard when immediately preceding
-	soft vowels i, í, and ě.
-	"""
-	if (soft_matches := re.findall("(" + soft_consonant + soft_vowel + ")", word)):
-		for match in soft_matches:
-			# make e->ě if not preceded by ď, ť, or ň
-			consonant = match[0]
-			vowel = "e" if match[1]== "ě" else match[1]
-			
-			if re.search("[ďťň]", match[0]):
-				consonant = harden(match[0])
-				vowel = match[1]
-			# replace consonant and vowel
-			word = re.sub(match, consonant + vowel, word)
-	return word
-
 # helper class
 class Syllables:
 	""""
@@ -230,26 +165,31 @@ class Syllables:
 				self.syllable_list.append((syllable_string, has_syllabic))
 
 	# utilities	
+	def _valid_syllable(self, idx : int) -> bool:
+		valid_cond = (len(self.syllable_list) > 0) and \
+					 (idx < 0 and abs(idx) <= len(self.syllable_list)) or \
+					 (idx < len(self.syllable_list))
+		return valid_cond
+	
 	def _get_syllable_at(self, idx : int) -> tuple:
 		"""Retrieve syllable tuple at valid <idx> or return default if invalid."""
-		valid_cond = (idx < 0 and abs(idx) <= len(self.syllable_list)) or (idx < len(self.syllable_list))
-		return self.syllable_list[idx] if valid_cond else ("", False)
+		return self.syllable_list[idx] if self._valid_syllable(idx) else ("", False)
 
 	def inspect_syllable(self, idx : int) -> str:
 		"""Return syllable string at indicated <idx> for the syllable."""
-		return self._get_syllable_at(idx)[0]
+		return self._get_syllable_at(idx)[0] if self._valid_syllable(idx) else ("", False)
 	
 	def is_syllabic(self, idx : int) -> bool:
 		"""Return the is_syllabic state at indicated <idx> for the syllable."""
-		return self._get_syllable_at(idx)[1]
+		return self._get_syllable_at(idx)[1] if self._valid_syllable(idx) else ("", False)
 
 	def contains_cluster(self, idx : int) -> bool:
 		"""Determine if syllable at <idx> contains a consonant cluster."""
-		return re.search(cluster, self.inspect_syllable(idx))
+		return re.search(cluster, self.inspect_syllable(idx)) if self._valid_syllable(idx) else ("", False)
 	
 	def contains_vowel(self, idx : int) -> bool:
 		"""Determine if syllable at <idx> contains any vowels."""
-		return contains_vowel(self.inspect_syllable(idx))
+		return contains_vowel(self.inspect_syllable(idx)) if self._valid_syllable(idx) else ("", False)
 	
 	def is_monosyllabic(self) -> bool:
 		"""Determine if there is only one syllable."""
@@ -258,3 +198,72 @@ class Syllables:
 	def is_polysyllabic(self) -> bool:
 		"""Determine if there are multiple syllables."""
 		return (len(self.syllable_list)) > 1
+
+# regex-conversion mappings
+regex_conversion = {"soft" : (soft_consonant, get_hard_consonant), "hard" : ("(ch)|" + hard_consonant, get_soft_consonant),
+					"short" : (short_vowel, get_long_vowel), "long" : (long_vowel, get_short_vowel) }
+def get_pattern_function(pattern_type : str) -> tuple:
+	"""Return corresponding regex pattern and conversion function as a tuple[str, function]."""
+	ret = get_val_from_dict(regex_conversion, pattern_type)
+	return ret if ret != pattern_type else ("^$", None)	
+
+def convert_last_match(word : str, pattern_type : str) -> str:
+	"""Replace last occurring match in last syllable of <pattern_type> in <word> with converted value based from <pattern_type>."""
+	if word == "":
+		return word
+	(pattern, conversion) = get_pattern_function(pattern_type)
+
+	# separate last syllable into phonemes
+	# otherwise will just continue to the rest of the word and convert at the wrong syllable (ie second to last)
+	last_syllable = Syllables(word).inspect_syllable(-1)
+	phonemes  = [match[0] for match in re.findall(phoneme, last_syllable)]
+
+	# find last occurrence of the pattern within phonemes to substitute
+	phonemes.reverse()
+	match = re.search(pattern, "".join(phonemes))
+	ret = word
+	if match is not None:
+		match = match[0]
+		if match in phonemes:
+			idx = phonemes.index(match) 
+			phonemes[idx] = conversion(match)
+			phonemes.reverse()
+			new_last_syllable = "".join(phonemes)
+			ret = word[:-len(last_syllable)] + new_last_syllable
+	return ret
+						  
+def lengthen(stem : str) -> str:
+	"""Lengthen short vowel in <stem>."""
+	return convert_last_match(stem, "short")
+
+def shorten(stem : str) -> str:
+	"""Shorten long vowel in <stem>."""
+	return convert_last_match(stem, "long")
+
+def soften(stem : str) -> str:
+	"""Soften the final hard consonant in <stem>."""
+	return convert_last_match(stem, "hard")
+
+def harden(stem : str) -> str:
+	"""Harden the final soft consonant in <stem>."""
+	return convert_last_match(stem, "soft")
+
+def fix_spelling(word : str) -> str:
+	"""
+	Fix spelling of certain soft consonants when alongside certain soft vowels.
+
+	The soft consonants ď, ť, and ň, are made hard when immediately preceding
+	soft vowels i, í, and ě.
+	"""
+	if (soft_matches := re.findall("(" + soft_consonant + soft_vowel + ")", word)):
+		for match in soft_matches:
+			# make e->ě if not preceded by ď, ť, or ň
+			consonant = match[0]
+			vowel = "e" if match[1]== "ě" else match[1]
+			
+			if re.search("[ďťň]", match[0]):
+				consonant = harden(match[0])
+				vowel = match[1]
+			# replace consonant and vowel
+			word = re.sub(match, consonant + vowel, word)
+	return word

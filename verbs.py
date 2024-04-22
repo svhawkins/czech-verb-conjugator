@@ -676,9 +676,11 @@ class Class4_ct(Class4):
 
 		
 		self.present_stem = self.stem + "č"
-		self.past_stem = self.stem + "kl"
-		if self.stem[-1] == "u": # ou -> u
-			self.past_stem = vutils.lengthen(self.past_stem)
+		self.past_stem = self.stem
+		if self.stem[-1] == "u": # u -> ou
+			self.past_stem = self.infinitive[:-2]
+		self.past_stem = self.past_stem + "kl"
+		
 		#self.passive_stem = self.present_stem + "en"
 		self.imperative_stem = self.present_stem
 
